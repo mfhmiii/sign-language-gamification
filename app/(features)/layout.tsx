@@ -7,6 +7,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "../globals.css";
+import { BottomNav } from "@/components/bottom-nav";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -23,7 +24,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function AuthLayout({
+export default function FeatureLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -51,12 +52,10 @@ export default function AuthLayout({
                 </div>
               </nav>
               <div className="flex flex-col gap-20 max-w-5xl p-5">
-                <div className="max-w-7xl flex flex-col gap-12 items-start">
-                  {children}
-                </div>
+                {children}
               </div>
-
-              <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
+              <BottomNav />
+              {/* <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
                 <p>
                   Powered by{" "}
                   <a
@@ -69,7 +68,7 @@ export default function AuthLayout({
                   </a>
                 </p>
                 <ThemeSwitcher />
-              </footer>
+              </footer> */}
             </div>
           </main>
         </ThemeProvider>
@@ -77,4 +76,3 @@ export default function AuthLayout({
     </html>
   );
 }
-

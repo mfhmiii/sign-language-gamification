@@ -4,9 +4,12 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { db } from "@/utils/orm";
+import { users } from "@/utils/supabase/schema";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
+  const username = formData.get("username")?.toString();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
@@ -19,7 +22,7 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -31,10 +34,25 @@ export const signUpAction = async (formData: FormData) => {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
   } else {
+    const userId = data.user?.id;
+    if (userId) {
+      try {
+        // Insert user data into Drizzle ORM
+        const { data, error } = await supabase.from("users").insert({
+          id: userId,
+          username,
+          email,
+        });
+  
+        console.log(data, error);
+      } catch (error) {
+        console.error("Drizzle Insert Error:", error);
+      }
+    }
     return encodedRedirect(
       "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
+      "/home",
+      "Thanks for signing up!",
     );
   }
 };
@@ -53,7 +71,7 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("/protected");
+  return redirect("/home");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
