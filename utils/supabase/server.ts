@@ -1,5 +1,10 @@
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { db, connectDB } from "../orm";
+import { users } from "./schema";
+import { error } from "console";
+import { eq } from "drizzle-orm";
 
 export const createClient = async () => {
   const cookieStore = await cookies();
@@ -24,6 +29,32 @@ export const createClient = async () => {
           }
         },
       },
-    },
+    }
   );
+};
+
+export const getUserProfile = async () => {
+  const supabase = await createClient();
+
+  const { data: userData, error } = await supabase.auth.getUser();
+
+  if (error || !userData?.user) {
+    console.error("User not found:", error?.message || "No authenticated user");
+    return null;
+  }
+
+  try {
+    // Ensure database connection is established
+    await connectDB();
+
+    // Query user data from the database using the verified user ID
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userData.user.id));
+    return user[0] ?? null;
+  } catch (error) {
+    console.error("Database error:", error);
+    return null;
+  }
 };
