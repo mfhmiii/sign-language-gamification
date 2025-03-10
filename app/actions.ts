@@ -5,7 +5,12 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/utils/orm";
-import { users } from "@/utils/supabase/schema";
+import {
+  users,
+  quiz_questions,
+  user_quiz_progress,
+} from "@/utils/supabase/schema";
+import { eq } from "drizzle-orm";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -18,11 +23,12 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/sign-up",
-      "Email and password are required",
+      "Email and password are required"
     );
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  // Create auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -30,31 +36,74 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
-  if (error) {
-    console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    const userId = data.user?.id;
-    if (userId) {
-      try {
-        // Insert user data into Drizzle ORM
-        const { data, error } = await supabase.from("users").insert({
-          id: userId,
-          username,
-          email,
-        });
-  
-        console.log(data, error);
-      } catch (error) {
-        console.error("Drizzle Insert Error:", error);
-      }
-    }
+  if (authError || !authData.user) {
+    console.error("Auth Error:", authError);
     return encodedRedirect(
-      "success",
-      "/home",
-      "Thanks for signing up!",
+      "error",
+      "/sign-up",
+      authError?.message || "Signup failed"
     );
   }
+
+  const userId = authData.user.id;
+
+  // Insert user data
+  const { error: userError } = await supabase.from("users").insert({
+    id: userId,
+    username,
+    email,
+    xp: 0,
+    coins: 0,
+  });
+
+  if (userError) {
+    console.error("User creation error:", userError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to create user profile"
+    );
+  }
+
+  // Fetch all quiz questions
+  const { data: questions, error: questionsError } = await supabase
+    .from("quiz_questions")
+    .select("id, level_id");
+
+  if (questionsError) {
+    console.error("Questions fetch error:", questionsError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup user progress"
+    );
+  }
+
+  // Create and insert progress records if there are questions
+  if (questions && questions.length > 0) {
+    const progressRecords = questions.map((question) => ({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      level_id: question.level_id,
+      question_id: question.id,
+      is_completed: false,
+    }));
+
+    const { error: progressError } = await supabase
+      .from("user_quiz_progress")
+      .insert(progressRecords);
+
+    if (progressError) {
+      console.error("Progress creation error:", progressError);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to setup user progress"
+      );
+    }
+  }
+
+  return redirect("/home");
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -93,7 +142,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password",
+      "Could not reset password"
     );
   }
 
@@ -104,7 +153,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password.",
+    "Check your email for a link to reset your password."
   );
 };
 
@@ -118,7 +167,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password and confirm password are required",
+      "Password and confirm password are required"
     );
   }
 
@@ -126,7 +175,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Passwords do not match",
+      "Passwords do not match"
     );
   }
 
@@ -138,7 +187,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password update failed",
+      "Password update failed"
     );
   }
 

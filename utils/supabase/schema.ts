@@ -28,6 +28,7 @@ export const users = pgTable("users", {
 export const quiz_level = pgTable("quiz_level", {
   id: uuid("id").primaryKey().notNull(),
   name: varchar("name", { length: 256 }).notNull(),
+  order: integer("order").notNull(),
 });
 
 // Quiz Questions Table
