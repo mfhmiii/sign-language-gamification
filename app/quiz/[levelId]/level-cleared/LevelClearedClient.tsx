@@ -47,29 +47,24 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
         const { coins, xp } = calculateRewards(levelOrder);
 
         // Get current user stats
-        const { data: currentStats } = await supabase
+        const { data: currentStats, error: statsError } = await supabase
           .from("users")
-          .select("*")
+          .select("points, xp")
           .eq("id", userId)
           .single();
 
-        if (currentStats) {
-          // Update existing stats
-          await supabase
-            .from("users")
-            .update({
-              coins: currentStats.coins + coins,
-              xp: currentStats.xp + xp,
-            })
-            .eq("id", userId);
-        } else {
-          // Create new stats record
-          await supabase.from("users").insert({
-            user_id: userId,
-            coins,
-            xp,
-          });
-        }
+        if (statsError) throw statsError;
+
+        // Update user stats with new values
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({
+            points: (currentStats?.points || 0) + coins,
+            xp: (currentStats?.xp || 0) + xp,
+          })
+          .eq("id", userId);
+
+        if (updateError) throw updateError;
 
         setRewards({ coins, xp });
         setRewardsGiven(true);

@@ -4,20 +4,13 @@ import Image from "next/image";
 import { Crown, Coins } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState, useRef } from "react";
-
-interface Player {
-  id: string;
-  rank?: number;
-  username: string;
-  coins: number;
-  xp: number;
-  profile_photo?: string;
-}
+import { getRankedUsers } from "@/utils/ranking";
+import type { RankedUser } from "@/utils/ranking";
 
 export default function LeaderboardPage() {
-  const [topPlayers, setTopPlayers] = useState<Player[]>([]);
-  const [otherPlayers, setOtherPlayers] = useState<Player[]>([]);
-  const [currentUser, setCurrentUser] = useState<Player | null>(null);
+  const [topPlayers, setTopPlayers] = useState<RankedUser[]>([]);
+  const [otherPlayers, setOtherPlayers] = useState<RankedUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<RankedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
   const currentUserRef = useRef<HTMLDivElement>(null);
@@ -32,37 +25,21 @@ export default function LeaderboardPage() {
         } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch all users ordered by coins
-        const { data: users, error } = await supabase
-          .from("users")
-          .select("id, username, coins, xp, profile_photo")
-          .order("coins", { ascending: false });
+        // Get ranked users (this will use cache if available)
+        const rankedUsers = await getRankedUsers();
 
-        if (error) {
-          console.error("Error fetching leaderboard:", error);
-          return;
+        // Find current user in the ranked list
+        const userRank = rankedUsers.find((u) => u.id === user.id);
+        if (userRank) {
+          setCurrentUser(userRank);
         }
 
-        if (users) {
-          // Add rank to each user
-          const rankedUsers = users.map((user, index) => ({
-            ...user,
-            rank: index + 1,
-          }));
+        // Split into top 3 and others
+        const top3 = rankedUsers.slice(0, 3);
+        const others = rankedUsers.slice(3); // Get all remaining users
 
-          // Find current user in the ranked list
-          const userRank = rankedUsers.find((u) => u.id === user.id);
-          if (userRank) {
-            setCurrentUser(userRank);
-          }
-
-          // Split into top 3 and others
-          const top3 = rankedUsers.slice(0, 3);
-          const others = rankedUsers.slice(3); // Get all remaining users
-
-          setTopPlayers(top3);
-          setOtherPlayers(others);
-        }
+        setTopPlayers(top3);
+        setOtherPlayers(others);
       } catch (error) {
         console.error("Error in fetchLeaderboard:", error);
       } finally {
@@ -71,6 +48,11 @@ export default function LeaderboardPage() {
     }
 
     fetchLeaderboard();
+
+    // Set up interval to refresh data every 5 minutes
+    const interval = setInterval(fetchLeaderboard, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, [supabase]);
 
   useEffect(() => {
@@ -174,7 +156,7 @@ export default function LeaderboardPage() {
                 </p>
                 <div className="flex items-center justify-center gap-1">
                   <Coins className="w-4 h-4 text-yellow-500" />
-                  <p className="text-gray-700 font-medium">{player.coins}</p>
+                  <p className="text-gray-700 font-medium">{player.points}</p>
                 </div>
                 <p className="text-gray-500 text-xs">
                   Level {Math.floor(player.xp / 1000)}
@@ -196,7 +178,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Table Rows */}
-        <div className="space-y-2 pb-20">
+        <div className="space-y-2 pb-4">
           {otherPlayers.map((player) => (
             <div
               key={player.id}
@@ -214,10 +196,10 @@ export default function LeaderboardPage() {
               </div>
               <div className="w-24 text-right font-medium flex items-center justify-end gap-1">
                 <Coins className="w-4 h-4 text-yellow-500" />
-                <span>{player.coins}</span>
+                <span>{player.points}</span>
               </div>
               <div className="w-20 text-right text-gray-600">
-                Level {Math.floor(player.xp / 1000)}
+                {Math.floor(player.xp / 1000)}
               </div>
             </div>
           ))}
@@ -225,7 +207,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Sticky Current User Rank */}
-      {currentUser && showSticky && (
+      {/* {currentUser && showSticky && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4">
           <div className="max-w-lg mx-auto flex justify-between items-center">
             <div className="w-16 font-medium">{currentUser.rank}</div>
@@ -235,14 +217,14 @@ export default function LeaderboardPage() {
             </div>
             <div className="w-24 text-right font-medium flex items-center justify-end gap-1">
               <Coins className="w-4 h-4 text-yellow-500" />
-              <span>{currentUser.coins}</span>
+              <span>{currentUser.points}</span>
             </div>
             <div className="w-20 text-right text-gray-600">
               Level {Math.floor(currentUser.xp / 1000)}
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

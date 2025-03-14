@@ -53,7 +53,10 @@ export const signUpAction = async (formData: FormData) => {
     username,
     email,
     xp: 0,
-    coins: 0,
+    points: 0,
+    badges1: false,
+    badges2: false,
+    badges3: false,
   });
 
   if (userError) {

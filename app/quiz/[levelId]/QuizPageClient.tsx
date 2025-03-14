@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo } from "react";
 import QuizQuestion from "@/components/QuizQuestion";
 import { createClient } from "@/utils/supabase/client";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { updateQuizStreak } from "@/utils/streak";
 
 interface UserProgress {
   question_id: string;
@@ -337,7 +338,21 @@ function QuizQuestionCard({
         }
       }
 
-      console.log("Progress updated successfully");
+      // Update quiz streak based on answer correctness
+      const streakResult = await updateQuizStreak(
+        userId,
+        question.level_id,
+        question.id,
+        isCorrectAnswer
+      );
+
+      if (streakResult) {
+        console.log(
+          `Current level streak: ${streakResult.currentStreak}, All-time longest: ${streakResult.longestQuizStreak}`
+        );
+      }
+
+      console.log("Progress and streak updated successfully");
     } catch (error) {
       console.error("Error in handleSubmit:", error);
     }

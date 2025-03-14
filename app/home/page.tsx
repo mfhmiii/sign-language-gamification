@@ -6,6 +6,7 @@ import { CircularProgress } from "@/components/circular-progress";
 import { Lock } from "lucide-react";
 import { getUserProfile } from "@/utils/supabase/server";
 import { createClient } from "@/utils/supabase/server";
+import { getUserRank, getBadgeInfo } from "@/utils/ranking";
 
 interface QuizProgress {
   is_completed: boolean;
@@ -28,6 +29,9 @@ export default async function HomePage() {
     if (!user) {
       return redirect("/sign-in");
     }
+
+    // Get user's rank information
+    const userRank = await getUserRank(user.id);
 
     // Fetch quiz levels with progress
     const { data: levels } = await supabase
@@ -80,11 +84,11 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
           </div>
 
-          <StatsCard
-            points={user.coins || 0}
-            ranking={1}
-            level={levelProgress?.length || 0}
-          />
+            <StatsCard
+              points={user.points || 0}
+              ranking={userRank?.rank || 0}
+              level={Math.floor((user.xp || 0) / 1000)}
+            />
 
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h3 className="text-xl font-semibold mb-4">

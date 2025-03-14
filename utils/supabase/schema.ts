@@ -6,6 +6,7 @@ import {
   integer,
   boolean,
   jsonb,
+  date,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -16,12 +17,17 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }).unique().notNull(),
   profilePhoto: varchar("profile_photo", { length: 500 }),
   xp: integer("xp").default(0),
-  coins: integer("coins").default(0),
+  points: integer("points").default(0),
+  level: integer("level").default(1),
+  badges1: boolean("badges1").default(false),
+  badges2: boolean("badges2").default(false),
+  badges3: boolean("badges3").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .notNull()
     .$onUpdate(() => new Date()),
+  longestQuizStreak: integer("longest_quiz_streak").default(0),
 });
 
 // Quiz Levels Table
@@ -29,6 +35,23 @@ export const quiz_level = pgTable("quiz_level", {
   id: uuid("id").primaryKey().notNull(),
   name: varchar("name", { length: 256 }).notNull(),
   order: integer("order").notNull(),
+});
+
+// Level Streaks Table
+export const level_streaks = pgTable("level_streaks", {
+  id: uuid("id").primaryKey().notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  levelId: uuid("level_id")
+    .notNull()
+    .references(() => quiz_level.id),
+  currentStreak: integer("current_streak").default(0),
+  lastQuestionId: uuid("last_question_id").references(() => quiz_questions.id), // To track where user left off
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
 
 // Quiz Questions Table
@@ -58,6 +81,20 @@ export const user_quiz_progress = pgTable("user_quiz_progress", {
     .references(() => quiz_questions.id),
   isCompleted: boolean("is_completed").default(false),
 });
+
+// export const daily_mission = pgTable("daily_mission", {
+//   id: uuid("id").primaryKey().notNull(),
+//   name: varchar("name", { length: 500 }).notNull(),
+//   limit: integer("limit").notNull(),
+//   description: varchar("description", { length: 500 }),
+// });
+
+// export const user_mission_progress = pgTable("user_mission_progress", {
+//   id: uuid("id").primaryKey().notNull(),
+//   userId: uuid("user_id")
+//     .notNull()
+//     .references(() => users.id),
+// })
 
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({

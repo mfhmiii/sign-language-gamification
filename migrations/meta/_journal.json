@@ -15,6 +15,41 @@
       "when": 1741063024298,
       "tag": "0001_overconfident_landau",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1741652082607,
+      "tag": "0002_red_umar",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1741652184322,
+      "tag": "0003_groovy_patch",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1741753449432,
+      "tag": "0004_yummy_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1741848008462,
+      "tag": "0005_absurd_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1741910853154,
+      "tag": "0006_lyrical_ser_duncan",
+      "breakpoints": true
     }
   ]
 }
