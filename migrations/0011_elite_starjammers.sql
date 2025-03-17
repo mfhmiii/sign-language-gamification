@@ -1,0 +1,1 @@
+ALTER TABLE "achievement" DROP COLUMN "type";

@@ -2,7 +2,7 @@
 create or replace function increment_user_stats(
   user_id uuid,
   xp_increment integer,
-  coins_increment integer
+  points_increment integer
 ) returns void as $$
 begin
   update users

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { StatsCard } from "@/components/stats-card";
 import { Card } from "@/components/ui/card";
 import { CircularProgress } from "@/components/circular-progress";
-import { Lock } from "lucide-react";
+import { Lock, CheckCircle } from "lucide-react";
 import { getUserProfile } from "@/utils/supabase/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
@@ -84,11 +84,11 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
           </div>
 
-            <StatsCard
-              points={user.points || 0}
-              ranking={userRank?.rank || 0}
-              level={Math.floor((user.xp || 0) / 1000)}
-            />
+          <StatsCard
+            points={user.points || 0}
+            ranking={userRank?.rank || 0}
+            level={Math.floor((user.xp || 0) / 1000)}
+          />
 
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h3 className="text-xl font-semibold mb-4">
@@ -102,16 +102,23 @@ export default async function HomePage() {
                   !previousLevel?.user_quiz_progress?.some(
                     (p: { is_completed: boolean }) => p.is_completed
                   );
+                const isCompleted = level.percentage === 100;
 
                 return (
                   <Link
                     key={level.id}
-                    href={isLocked ? "#" : `/quiz/${level.id}`}
-                    className={isLocked ? "cursor-not-allowed" : ""}
+                    href={isLocked || isCompleted ? "#" : `/quiz/${level.id}`}
+                    className={
+                      isLocked || isCompleted ? "cursor-not-allowed" : ""
+                    }
                   >
                     <Card
                       className={`p-4 sm:p-6 transition-colors hover:opacity-90 ${
-                        isLocked ? "bg-muted" : "bg-[#D1F2D9]"
+                        isLocked
+                          ? "bg-muted"
+                          : isCompleted
+                            ? "bg-green-200"
+                            : "bg-[#D1F2D9]"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
@@ -133,6 +140,10 @@ export default async function HomePage() {
                           {isLocked ? (
                             <div className="text-muted-foreground">
                               <Lock className="w-6 h-6 sm:w-8 sm:h-8" />
+                            </div>
+                          ) : isCompleted ? (
+                            <div className="text-green-500">
+                              <CheckCircle className="w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]" />
                             </div>
                           ) : (
                             <div className="w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]">

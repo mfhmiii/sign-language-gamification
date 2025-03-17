@@ -106,6 +106,124 @@ export const signUpAction = async (formData: FormData) => {
     }
   }
 
+  // Fetch all missions
+  const { data: missions, error: missionsError } = await supabase
+    .from("mission")
+    .select("*");
+
+  if (missionsError) {
+    console.error("Missions fetch error:", missionsError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup mission progress"
+    );
+  }
+
+  // Create and insert mission progress records if there are missions
+  if (missions && missions.length > 0) {
+    const missionProgressRecords = missions.map((mission) => ({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      mission_id: mission.id,
+      progress_point: 0,
+      current_level: 1,
+      current_level_requirement: mission.level_requirement,
+      current_xp_reward: mission.xp_reward,
+      current_points_reward: mission.points_reward,
+      last_completed_at: null,
+    }));
+
+    const { error: missionProgressError } = await supabase
+      .from("user_mission_progress")
+      .insert(missionProgressRecords);
+
+    if (missionProgressError) {
+      console.error("Mission progress creation error:", missionProgressError);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to setup mission progress"
+      );
+    }
+  }
+
+  // Fetch all achievements
+  const { data: achievements, error: achievementsError } = await supabase
+    .from("achievement")
+    .select("*");
+
+  if (achievementsError) {
+    console.error("Achievements fetch error:", achievementsError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup achievement progress"
+    );
+  }
+
+  // Create and insert achievement progress records if there are achievements
+  if (achievements && achievements.length > 0) {
+    const achievementProgressRecords = achievements.map((achievement) => ({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      achievement_id: achievement.id,
+      progress_point: 0,
+      last_completed_at: null,
+    }));
+
+    const { error: achievementProgressError } = await supabase
+      .from("user_achievement_progress")
+      .insert(achievementProgressRecords);
+
+    if (achievementProgressError) {
+      console.error("Achievement progress creation error:", achievementProgressError);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to setup achievement progress"
+      );
+    }
+  }
+
+  // Fetch all quiz levels
+  const { data: levels, error: levelsError } = await supabase
+    .from("quiz_level")
+    .select("id");
+
+  if (levelsError) {
+    console.error("Levels fetch error:", levelsError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup level streaks"
+    );
+  }
+
+  // Create and insert level streak records if there are levels
+  if (levels && levels.length > 0) {
+    const levelStreakRecords = levels.map((level) => ({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      level_id: level.id,
+      current_streak: 0,
+      last_question_id: null,
+    }));
+
+    const { error: streakError } = await supabase
+      .from("level_streaks")
+      .insert(levelStreakRecords);
+
+    if (streakError) {
+      console.error("Level streak creation error:", streakError);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to setup level streaks"
+      );
+    }
+  }
+
   return redirect("/home");
 };
 

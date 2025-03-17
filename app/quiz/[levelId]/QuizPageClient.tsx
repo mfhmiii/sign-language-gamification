@@ -338,6 +338,102 @@ function QuizQuestionCard({
         }
       }
 
+      // Update mission progress if answer is correct
+      if (isCorrectAnswer) {
+        const { data: missionProgress, error: missionError } = await supabase
+          .from("user_mission_progress")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("mission_id", "550e8400-e29b-41d4-a716-446655440000")
+          .single();
+
+        if (missionError && missionError.code === "PGRST116") {
+          // If no progress exists, create new progress
+          const { error: createError } = await supabase
+            .from("user_mission_progress")
+            .insert({
+              user_id: userId,
+              mission_id: "550e8400-e29b-41d4-a716-446655440000",
+              progress_point: 1,
+              current_level: 1,
+              current_level_requirement: 5,
+            });
+
+          if (createError)
+            console.error("Error creating mission progress:", createError);
+        } else if (missionProgress) {
+          // If progress exists, increment progress_point
+          const { error: updateError } = await supabase
+            .from("user_mission_progress")
+            .update({ progress_point: missionProgress.progress_point + 1 })
+            .eq("id", missionProgress.id);
+
+          if (updateError)
+            console.error("Error updating mission progress:", updateError);
+        }
+
+        // Get the level order from the question's level_id
+        const { data: levelData, error: levelError } = await supabase
+          .from("quiz_level")
+          .select("order")
+          .eq("id", question.level_id)
+          .single();
+
+        if (levelError) {
+          console.error("Error getting level order:", levelError);
+          return;
+        }
+
+        // Update achievement progress based on the level order
+        let achievementId = "";
+        switch (levelData.order) {
+          case 1:
+            achievementId = "0cc95048-c100-4f6c-bf4c-3b2ec372cddb";
+            break;
+          case 2:
+            achievementId = "20775b28-295d-40a7-b403-8ac2046d5719";
+            break;
+          case 3:
+            achievementId = "946200c8-a676-4ffc-ab97-3015ddaa65af";
+            break;
+          default:
+            console.error("Invalid level order:", levelData.order);
+            return;
+        }
+
+        // Update achievement progress for the current level
+        const { data: achievementProgress, error: achievementError } =
+          await supabase
+            .from("user_achievement_progress")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("achievement_id", achievementId)
+            .single();
+
+        if (achievementError && achievementError.code === "PGRST116") {
+          // If no achievement progress exists, create new progress
+          const { error: createError } = await supabase
+            .from("user_achievement_progress")
+            .insert({
+              user_id: userId,
+              achievement_id: achievementId,
+              progress_point: 1,
+            });
+
+          if (createError)
+            console.error("Error creating achievement progress:", createError);
+        } else if (achievementProgress) {
+          // If progress exists, increment progress_point
+          const { error: updateError } = await supabase
+            .from("user_achievement_progress")
+            .update({ progress_point: achievementProgress.progress_point + 1 })
+            .eq("id", achievementProgress.id);
+
+          if (updateError)
+            console.error("Error updating achievement progress:", updateError);
+        }
+      }
+
       // Update quiz streak based on answer correctness
       const streakResult = await updateQuizStreak(
         userId,

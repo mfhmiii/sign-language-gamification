@@ -34,17 +34,62 @@ export default function UserProfile() {
         } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Get user data
-        const { data: userData, error } = await supabase
-          .from("users")
-          .select(
-            "email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
-          )
-          .eq("id", user.id)
-          .single();
+        // Get user data and achievement progress
+        const [
+          { data: userData, error },
+          { data: beginnerProgress },
+          { data: intermediateProgress },
+          { data: expertProgress },
+        ] = await Promise.all([
+          supabase
+            .from("users")
+            .select(
+              "email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
+            )
+            .eq("id", user.id)
+            .single(),
+          supabase
+            .from("user_achievement_progress")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("achievement_id", "0cc95048-c100-4f6c-bf4c-3b2ec372cddb")
+            .single(),
+          supabase
+            .from("user_achievement_progress")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("achievement_id", "20775b28-295d-40a7-b403-8ac2046d5719")
+            .single(),
+          supabase
+            .from("user_achievement_progress")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("achievement_id", "946200c8-a676-4ffc-ab97-3015ddaa65af")
+            .single(),
+        ]);
 
         if (error) throw error;
-        if (userData) setUserData(userData);
+        if (userData) {
+          // Update badges if achievements are completed
+          const updates = {
+            badges1: beginnerProgress?.last_completed_at
+              ? true
+              : userData.badges1,
+            badges2: intermediateProgress?.last_completed_at
+              ? true
+              : userData.badges2,
+            badges3: expertProgress?.last_completed_at
+              ? true
+              : userData.badges3,
+          };
+
+          if (updates.badges1 || updates.badges2 || updates.badges3) {
+            await supabase.from("users").update(updates).eq("id", user.id);
+
+            Object.assign(userData, updates);
+          }
+          setUserData(userData);
+        }
 
         // Get user rank
         const rankData = await getUserRank(user.id);
@@ -85,10 +130,10 @@ export default function UserProfile() {
   const badgeInfo = userRank ? getBadgeInfo(userRank) : null;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
       {/* Profile Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
+      <div className="flex flex-col sm:flex-row items-center gap-4 sm:justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-center text-center sm:text-left">
           <div className="relative w-16 h-16 rounded-full overflow-hidden bg-red-400">
             <Image
               src={
@@ -100,7 +145,7 @@ export default function UserProfile() {
               className="object-cover"
             />
           </div>
-          <div className="ml-4">
+          <div className="mt-4 sm:mt-0 sm:ml-4">
             <h2 className="text-xl font-semibold">{userData.username}</h2>
             <div className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs">
               {userData.email}
@@ -128,7 +173,7 @@ export default function UserProfile() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="bg-green-300 p-4 rounded-lg flex items-center">
           <div className="p-2 rounded-full bg-red-100 mr-3">
             <Flame className="text-red-500" size={24} />
@@ -157,10 +202,10 @@ export default function UserProfile() {
         <div className="border-b-2 border-green-200 mb-4"></div>
 
         <h4 className="text-center text-gray-700 text-lg mb-4">Level Materi</h4>
-        <div className="flex gap-20 justify-center">
+        <div className="flex sm:gap-1 justify-around">
           {/* Beginner Badge */}
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 relative">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
               <div
                 className={`absolute inset-0 ${userData.badges1 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
               >
@@ -177,8 +222,8 @@ export default function UserProfile() {
           </div>
 
           {/* Intermediate Badge */}
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 relative">
+          <div className="flex flex-col items-center ">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
               <div
                 className={`absolute inset-0 ${userData.badges2 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
               >
@@ -196,7 +241,7 @@ export default function UserProfile() {
 
           {/* Expert Badge */}
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 relative">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
               <div
                 className={`absolute inset-0 ${userData.badges3 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
               >
@@ -214,33 +259,62 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* Leaderboard Section */}
-      <div>
-        <h4 className="text-center text-gray-700 text-lg mb-4">Leaderboard</h4>
-        <div className="flex justify-center">
+      {/* Misi Section */}
+      <div className="pb-10">
+        <h4 className="text-center text-gray-700 text-lg mb-4">Misi</h4>
+        <div className="flex sm:gap-1 justify-around">
+          {/* Beginner Badge */}
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 relative">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
               <div
-                className={`absolute inset-0 ${badgeInfo ? `bg-${badgeInfo.color.split("-")[1]}-200` : "bg-gray-200"} rounded-hexagon flex items-center justify-center`}
+                className={`absolute inset-0 ${userData.badges1 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
               >
-                <Trophy
-                  className={badgeInfo ? badgeInfo.color : "text-gray-500"}
-                  size={24}
-                />
-                {userRank && (
-                  <div
-                    className={`absolute text-xs font-bold ${badgeInfo ? `bg-${badgeInfo.color.split("-")[1]}-400` : "bg-gray-400"} text-white px-1 rounded`}
-                  >
-                    #{userRank}
+                {userData.badges1 ? (
+                  <div className="bg-yellow-300 p-1 rounded-full">
+                    <BookOpen className="text-red-500" size={24} />
                   </div>
+                ) : (
+                  <Lock className="text-gray-400" size={24} />
                 )}
               </div>
             </div>
-            <span className="mt-2 text-sm text-gray-600">
-              {badgeInfo
-                ? `${badgeInfo.badge} Rank #${userRank}`
-                : "Not Ranked"}
-            </span>
+            <span className="mt-2 text-sm text-gray-600">Beginner</span>
+          </div>
+
+          {/* Intermediate Badge */}
+          <div className="flex flex-col items-center ">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
+              <div
+                className={`absolute inset-0 ${userData.badges2 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
+              >
+                {userData.badges2 ? (
+                  <div className="bg-yellow-300 p-1 rounded-full">
+                    <BookOpen className="text-red-500" size={24} />
+                  </div>
+                ) : (
+                  <Lock className="text-gray-400" size={24} />
+                )}
+              </div>
+            </div>
+            <span className="mt-2 text-sm text-gray-600">Intermediet</span>
+          </div>
+
+          {/* Expert Badge */}
+          <div className="flex flex-col items-center">
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
+              <div
+                className={`absolute inset-0 ${userData.badges3 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
+              >
+                {userData.badges3 ? (
+                  <div className="bg-yellow-300 p-1 rounded-full">
+                    <BookOpen className="text-red-500" size={24} />
+                  </div>
+                ) : (
+                  <Lock className="text-gray-400" size={24} />
+                )}
+              </div>
+            </div>
+            <span className="mt-2 text-sm text-gray-600">Expert</span>
           </div>
         </div>
       </div>

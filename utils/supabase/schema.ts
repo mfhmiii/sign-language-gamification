@@ -82,23 +82,82 @@ export const user_quiz_progress = pgTable("user_quiz_progress", {
   isCompleted: boolean("is_completed").default(false),
 });
 
-// export const daily_mission = pgTable("daily_mission", {
-//   id: uuid("id").primaryKey().notNull(),
-//   name: varchar("name", { length: 500 }).notNull(),
-//   limit: integer("limit").notNull(),
-//   description: varchar("description", { length: 500 }),
-// });
+// Mission Table
+export const mission = pgTable("mission", {
+  id: uuid("id").primaryKey().notNull(),
+  name: varchar("name", { length: 500 }).notNull(),
+  description: varchar("description", { length: 500 }),
+  level: integer("level").default(1).notNull(),
+  levelRequirement: integer("level_requirement").notNull(), // Number of completions needed to level up
+  xpReward: integer("xp_reward").notNull(), // Base XP reward for current level
+  pointsReward: integer("points_reward").notNull(), // Base points reward for current level
+  badgeReward: varchar("badge_reward", { length: 500 }), // Badge image URL for current level
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 
-// export const user_mission_progress = pgTable("user_mission_progress", {
-//   id: uuid("id").primaryKey().notNull(),
-//   userId: uuid("user_id")
-//     .notNull()
-//     .references(() => users.id),
-// })
+// User Mission Progress Table
+export const user_mission_progress = pgTable("user_mission_progress", {
+  id: uuid("id").primaryKey().notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  missionId: uuid("mission_id")
+    .notNull()
+    .references(() => mission.id),
+  progress_point: integer("progress_point").default(0), // Track number of times completed
+  currentLevel: integer("current_level").default(1), // Current level of this mission for the user
+  currentLevelRequirement: integer("current_level_requirement").notNull(), // Current level's completion requirement
+  currentXpReward: integer("current_xp_reward").notNull(), // Current level's XP reward
+  currentPointsReward: integer("current_points_reward").notNull(), // Current level's points reward
+  lastCompletedAt: timestamp("last_completed_at"), // Track when user last completed the mission
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 
+// Achievement Table
+export const achievement = pgTable("achievement", {
+  id: uuid("id").primaryKey().notNull(),
+  name: varchar("name", { length: 500 }).notNull(),
+  description: varchar("description", { length: 500 }), // Type of achievement (streak, mission, leaderboard)
+  limit: integer("limit").notNull(),
+  xpReward: integer("xp_reward").notNull(),
+  pointsReward: integer("points_reward").notNull(),
+  badgeReward: varchar("badge_reward", { length: 500 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+// User Achievement Progress Table
+export const user_achievement_progress = pgTable("user_achievement_progress", {
+  id: uuid("id").primaryKey().notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  achievementId: uuid("achievement_id")
+    .notNull()
+    .references(() => achievement.id),
+  progress_point: integer("progress_point").default(0),
+  lastCompletedAt: timestamp("last_completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({
   progress: many(user_quiz_progress), // A user can have many progress records
+  achievementProgress: many(user_achievement_progress), // A user can have many achievement progress records
 }));
 
 // Quiz Levels Relations
@@ -138,6 +197,45 @@ export const userQuizProgressRelations = relations(
       // A progress record belongs to one question
       fields: [user_quiz_progress.questionId],
       references: [quiz_questions.id],
+    }),
+  })
+);
+
+// Mission Relations
+export const missionRelations = relations(mission, ({ many }) => ({
+  userProgress: many(user_mission_progress), // A mission can have many user progress records
+}));
+
+// User Mission Progress Relations
+export const userMissionProgressRelations = relations(
+  user_mission_progress,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [user_mission_progress.userId],
+      references: [users.id],
+    }),
+    mission: one(mission, {
+      fields: [user_mission_progress.missionId],
+      references: [mission.id],
+    }),
+  })
+);
+// Achievement Relations
+export const achievementRelations = relations(achievement, ({ many }) => ({
+  userProgress: many(user_achievement_progress), // An achievement can have many user progress records
+}));
+
+// User Achievement Progress Relations
+export const userAchievementProgressRelations = relations(
+  user_achievement_progress,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [user_achievement_progress.userId],
+      references: [users.id],
+    }),
+    achievement: one(achievement, {
+      fields: [user_achievement_progress.achievementId],
+      references: [achievement.id],
     }),
   })
 );
