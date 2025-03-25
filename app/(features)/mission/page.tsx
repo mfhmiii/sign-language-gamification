@@ -368,8 +368,7 @@ export default function MissionPage() {
                 );
                 const progressPoint = progress?.progress_point || 0;
                 const isCompleted = progress?.last_completed_at !== null;
-                const canClaim =
-                  progressPoint >= achievement.limit && !isCompleted;
+                const canClaim = progressPoint >= achievement.limit && !isCompleted;
 
                 return (
                   <Card key={achievement.id} className="p-4">
@@ -383,25 +382,17 @@ export default function MissionPage() {
                           />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold">
-                            {achievement.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {achievement.description}
-                          </p>
+                          <h3 className="text-lg font-semibold">{achievement.name}</h3>
+                          <p className="text-sm text-gray-500">{achievement.description}</p>
                         </div>
                       </div>
                       <div className="mt-4">
                         {isCompleted ? (
-                          <div className="text-green-500 font-medium text-center">
-                            Selesai ✨
-                          </div>
+                          <div className="text-green-500 font-medium text-center">Selesai ✨</div>
                         ) : canClaim ? (
                           <div className="flex items-center gap-4 mt-2">
                             <Button
-                              onClick={() =>
-                                handleAchievementClaim(achievement)
-                              }
+                              onClick={() => handleAchievementClaim(achievement)}
                               className="bg-yellow-500 hover:bg-yellow-600 w-full"
                             >
                               Klaim Hadiah
@@ -497,14 +488,10 @@ export default function MissionPage() {
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
             <h2 className="text-xl font-bold mb-4">KONSISTENSI ADALAH KUNCI</h2>
             <div className="text-center mb-4">
-              {(currentMission?.badge_reward ||
-                currentAchievement?.badge_reward) && (
+              {(currentMission?.badge_reward || currentAchievement?.badge_reward) && (
                 <div className="w-24 h-24 mx-auto mb-4">
                   <img
-                    // src={
-                    //   currentMission?.badge_reward ||
-                    //   currentAchievement?.badge_reward
-                    // }
+                    src={currentMission?.badge_reward || currentAchievement?.badge_reward}
                     alt="Badge"
                     className="w-full h-full object-contain"
                   />
@@ -512,16 +499,8 @@ export default function MissionPage() {
               )}
               <p className="mb-2">Alhamdulillah kamu mendapatkan</p>
               <div className="flex justify-center gap-4">
-                <p>
-                  +
-                  {currentMission?.points_reward ||
-                    currentAchievement?.points_reward}{" "}
-                  🪙
-                </p>
-                <p>
-                  EXP +
-                  {currentMission?.xp_reward || currentAchievement?.xp_reward}
-                </p>
+                <p>+{currentMission?.points_reward || currentAchievement?.points_reward} 🪙</p>
+                <p>EXP +{currentMission?.xp_reward || currentAchievement?.xp_reward}</p>
               </div>
             </div>
             <Button

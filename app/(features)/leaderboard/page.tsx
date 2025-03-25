@@ -4,10 +4,12 @@ import Image from "next/image";
 import { Crown, Coins } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { getRankedUsers } from "@/utils/ranking";
 import type { RankedUser } from "@/utils/ranking";
 
 export default function LeaderboardPage() {
+  const router = useRouter();
   const [topPlayers, setTopPlayers] = useState<RankedUser[]>([]);
   const [otherPlayers, setOtherPlayers] = useState<RankedUser[]>([]);
   const [currentUser, setCurrentUser] = useState<RankedUser | null>(null);
@@ -87,7 +89,7 @@ export default function LeaderboardPage() {
   return (
     <div className="flex flex-col min-h-screen relative pb-20">
       {/* Header */}
-      <div className="text-center py-4">
+      <div className="text-center sticky top-0 py-4 bg-green-200 z-50">
         <h1 className="text-2xl font-bold">Leaderboard</h1>
       </div>
 
@@ -187,11 +189,27 @@ export default function LeaderboardPage() {
                 isCurrentUser(player.id) ? "bg-blue-100" : "bg-green-200"
               }`}
             >
-              <div className="w-16 font-medium">{player.rank}</div>
-              <div className="flex-1 font-medium">
+              <div className="w-16 font-medium flex items-center gap-2">
+                {player.rank}
+              </div>
+              <div
+                className="flex-1 font-medium flex items-center gap-2 cursor-pointer"
+                onClick={() => router.push(`/profile/get`)}
+              >
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200">
+                  <Image
+                    src={
+                      player.profile_photo ||
+                      "/placeholder.svg?height=32&width=32"
+                    }
+                    alt={player.username}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 {player.username}
                 {isCurrentUser(player.id) && (
-                  <span className="text-blue-500 text-sm ml-2">(You)</span>
+                  <span className="text-blue-500 text-sm">(You)</span>
                 )}
               </div>
               <div className="w-24 text-right font-medium flex items-center justify-end gap-1">

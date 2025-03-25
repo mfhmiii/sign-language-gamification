@@ -1,73 +1,76 @@
-"use client";
+import type React from "react"
 
-import { CoinsIcon as Coin, Trophy, BookOpen } from "lucide-react";
-
-interface StatsCardProps {
-  points: number;
-  ranking: number;
-  level: number;
+type StatItemProps = {
+  icon: React.ReactNode
+  label: string
+  value: string | number
+  classname?: string
 }
 
-export function StatsCard({ points, ranking, level }: StatsCardProps) {
+const StatItem = ({ icon, label, value }: StatItemProps) => {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="flex justify-around items-center">
-        <div className="flex flex-col items-center">
-          <div className="text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6"
-            >
-              <path d="M12 .75a8.25 8.25 0 0 0-4.135 15.39c.686.398 1.115 1.008 1.134 1.623a.75.75 0 0 0 .577.706c.352.083.71.148 1.074.195.323.041.6-.218.6-.544v-4.661a6.75 6.75 0 1 1 1.5 0v4.66c0 .327.277.586.6.545.365-.047.722-.112 1.074-.195a.75.75 0 0 0 .577-.706c.02-.615.448-1.225 1.134-1.623A8.25 8.25 0 0 0 12 .75Z" />
+    <div className="flex flex-col items-center px-2">
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6">{icon}</div>
+        <span className="text-gray-500">{label}</span>
+      </div>
+      <p className="text-xl md:text-2xl font-bold">{value}</p>
+    </div>
+  )
+}
+
+type StatsCardProps = {
+  points: number
+  ranking: number
+  level: number
+  className?: string
+}
+
+export default function StatsCard({ points, ranking, level, className = "" }: StatsCardProps) {
+  return (
+    <div className={`bg-white rounded-xl py-4 shadow-sm ${className}`}>
+      <div className="grid grid-cols-3 divide-x-2 divide-green-400">
+        <StatItem
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
+              <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
               <path
                 fillRule="evenodd"
-                d="M9.013 19.9a.75.75 0 0 1 .877-.597 11.319 11.319 0 0 0 4.22 0 .75.75 0 1 1 .28 1.474 12.819 12.819 0 0 1-4.78 0 .75.75 0 0 1-.597-.877Z"
+                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v.816a3.836 3.836 0 00-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 01-.921-.421l-.879-.66a.75.75 0 00-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 001.5 0v-.81a4.124 4.124 0 001.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 00-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 00.933-1.175l-.415-.33a3.836 3.836 0 00-1.719-.755V6z"
                 clipRule="evenodd"
               />
             </svg>
-          </div>
-          <span className="text-sm text-muted-foreground">Poin</span>
-          <span className="font-bold">{points}</span>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6"
-            >
+          }
+          label="Poin"
+          value={points}
+        />
+        <StatItem
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
               <path
                 fillRule="evenodd"
-                d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 0 0-.584.859 6.753 6.753 0 0 0 6.138 5.6 6.73 6.73 0 0 0 2.743 1.346A6.707 6.707 0 0 1 9.279 15H8.54c-1.036 0-1.875.84-1.875 1.875V19.5h-.75a2.25 2.25 0 0 0-2.25 2.25c0 .414.336.75.75.75h15a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-2.25-2.25h-.75v-2.625c0-1.036-.84-1.875-1.875-1.875h-.739a6.706 6.706 0 0 1-1.112-3.173 6.73 6.73 0 0 0 2.743-1.347 6.753 6.753 0 0 0 6.139-5.6.75.75 0 0 0-.585-.858 47.077 47.077 0 0 0-3.07-.543V2.62a.75.75 0 0 0-.658-.744 49.22 49.22 0 0 0-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 0 0-.657.744Zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 0 1 3.16 5.337a45.6 45.6 0 0 1 2.006-.343v.256Zm13.668 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 0 1-2.863 3.207 6.72 6.72 0 0 0 .857-3.294Z"
+                d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 00-.584.859 6.753 6.753 0 006.138 5.6 6.73 6.73 0 002.743-.356l1.918-.56a.75.75 0 00.523-.71v-5.57a.75.75 0 00-.522-.71l-1.919-.56a6.767 6.767 0 00-2.743-.356 6.753 6.753 0 00-2.483.466z"
                 clipRule="evenodd"
               />
+              <path d="M1.636 14.408a.75.75 0 01.584-.86 24.283 24.283 0 015.413-1.139 6.75 6.75 0 01.6 1.187 23.052 23.052 0 00-4.93 1.079.75.75 0 01-.867-.583 6.922 6.922 0 01-.8.316zm12.768-5.17a.75.75 0 01.522.709v5.571a.75.75 0 01-.522.71l-1.919.561c-.9.262-1.826.39-2.743.356a6.753 6.753 0 01-6.138-5.6.75.75 0 01.584-.858 24.016 24.016 0 015.413-1.14 6.75 6.75 0 01.6 1.187 23.053 23.053 0 00-4.93 1.08.75.75 0 01-.867-.584 6.602 6.602 0 01-.8.316 6.767 6.767 0 002.743-.356l1.919-.56a.75.75 0 01.522-.71zm1.338 8.425a.75.75 0 01-.584.86 24.282 24.282 0 01-5.413 1.138 6.75 6.75 0 01-.6-1.187 23.053 23.053 0 004.93-1.08.75.75 0 01.867.585 6.598 6.598 0 00.8-.316z" />
             </svg>
-          </div>
-          <span className="text-sm text-muted-foreground">Rangking</span>
-          <span className="font-bold">{ranking}</span>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6"
-            >
-              <path d="M11.644 1.59a.75.75 0 0 1 .712 0l9.75 5.25a.75.75 0 0 1 0 1.32l-9.75 5.25a.75.75 0 0 1-.712 0l-9.75-5.25a.75.75 0 0 1 0-1.32l9.75-5.25Z" />
-              <path d="m3.265 10.602 7.668 4.129a2.25 2.25 0 0 0 2.134 0l7.668-4.13 1.37.739a.75.75 0 0 1 0 1.32l-9.75 5.25a.75.75 0 0 1-.71 0l-9.75-5.25a.75.75 0 0 1 0-1.32l1.37-.738Z" />
-              <path d="m10.933 19.231-7.668-4.13-1.37.739a.75.75 0 0 0 0 1.32l9.75 5.25c.221.12.489.12.71 0l9.75-5.25a.75.75 0 0 0 0-1.32l-1.37-.738-7.668 4.13a2.25 2.25 0 0 1-2.134-.001Z" />
+          }
+          label="Ranking"
+          value={ranking}
+        />
+        <StatItem
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
+              <path d="M11.644 1.59a.75.75 0 01.712 0l9.75 5.25a.75.75 0 010 1.32l-9.75 5.25a.75.75 0 01-.712 0l-9.75-5.25a.75.75 0 010-1.32l9.75-5.25z" />
+              <path d="M3.265 10.602l7.668 4.129a2.25 2.25 0 002.134 0l7.668-4.13 1.37.739a.75.75 0 010 1.32l-9.75 5.25a.75.75 0 01-.71 0l-9.75-5.25a.75.75 0 010-1.32l1.37-.738z" />
+              <path d="M10.933 19.231l-7.668-4.13-1.37.739a.75.75 0 000 1.32l9.75 5.25c.221.12.489.12.71 0l9.75-5.25a.75.75 0 000-1.32l-1.37-.738-7.668 4.13a2.25 2.25 0 01-2.134-.001z" />
             </svg>
-          </div>
-          <span className="text-sm text-muted-foreground">Level</span>
-          <span className="font-bold">{level}</span>
-        </div>
+          }
+          label="Level"
+          value={level}
+        />
       </div>
     </div>
-  );
+  )
 }
+

@@ -11,7 +11,7 @@ export function BottomNav() {
     { name: "Beranda", href: "/home", icon: Home },
     { name: "Misi", href: "/mission", icon: Target },
     { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
-    { name: "Profil", href: "/profile", icon: User },
+    { name: "Profil", href: "/profile/get", icon: User },
   ];
 
   return (

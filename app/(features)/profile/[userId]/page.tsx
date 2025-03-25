@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Flame, Coins, BookOpen, Lock, Trophy } from "lucide-react";
+import { Flame, Coins, BookOpen, Lock, Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
@@ -19,7 +19,11 @@ interface UserData {
   longest_quiz_streak: number;
 }
 
-export default function UserProfile() {
+export default function UserProfile({
+  params,
+}: {
+  params: { userId: string };
+}) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,12 +32,6 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        // Get current user
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-
         // Get user data and achievement progress
         const [
           { data: userData, error },
@@ -46,24 +44,24 @@ export default function UserProfile() {
             .select(
               "email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
             )
-            .eq("id", user.id)
+            .eq("id", params.userId)
             .single(),
           supabase
             .from("user_achievement_progress")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("user_id", params.userId)
             .eq("achievement_id", "0cc95048-c100-4f6c-bf4c-3b2ec372cddb")
             .single(),
           supabase
             .from("user_achievement_progress")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("user_id", params.userId)
             .eq("achievement_id", "20775b28-295d-40a7-b403-8ac2046d5719")
             .single(),
           supabase
             .from("user_achievement_progress")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("user_id", params.userId)
             .eq("achievement_id", "946200c8-a676-4ffc-ab97-3015ddaa65af")
             .single(),
         ]);
@@ -83,16 +81,12 @@ export default function UserProfile() {
               : userData.badges3,
           };
 
-          if (updates.badges1 || updates.badges2 || updates.badges3) {
-            await supabase.from("users").update(updates).eq("id", user.id);
-
-            Object.assign(userData, updates);
-          }
+          Object.assign(userData, updates);
           setUserData(userData);
         }
 
         // Get user rank
-        const rankData = await getUserRank(user.id);
+        const rankData = await getUserRank(params.userId);
         if (rankData) setUserRank(rankData.rank);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -102,10 +96,7 @@ export default function UserProfile() {
     }
 
     fetchUserData();
-    // Refresh data every 5 minutes
-    const interval = setInterval(fetchUserData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [supabase]);
+  }, [params.userId, supabase]);
 
   if (loading) {
     return (
@@ -147,15 +138,8 @@ export default function UserProfile() {
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-4">
             <h2 className="text-xl font-semibold">{userData.username}</h2>
-            <div className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs">
-              {userData.email}
-            </div>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="flex items-center gap-1">
-          <PencilIcon size={16} />
-          <span>Edit</span>
-        </Button>
       </div>
 
       {/* Level Progress */}
@@ -202,66 +186,6 @@ export default function UserProfile() {
         <div className="border-b-2 border-green-200 mb-4"></div>
 
         <h4 className="text-center text-gray-700 text-lg mb-4">Level Materi</h4>
-        <div className="flex sm:gap-1 justify-around">
-          {/* Beginner Badge */}
-          <div className="flex flex-col items-center">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges1 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges1 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
-            </div>
-            <span className="mt-2 text-sm text-gray-600">Beginner</span>
-          </div>
-
-          {/* Intermediate Badge */}
-          <div className="flex flex-col items-center ">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges2 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges2 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
-            </div>
-            <span className="mt-2 text-sm text-gray-600">Intermediet</span>
-          </div>
-
-          {/* Expert Badge */}
-          <div className="flex flex-col items-center">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges3 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges3 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
-            </div>
-            <span className="mt-2 text-sm text-gray-600">Expert</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Misi Section */}
-      <div className="pb-10">
-        <h4 className="text-center text-gray-700 text-lg mb-4">Misi</h4>
         <div className="flex sm:gap-1 justify-around">
           {/* Beginner Badge */}
           <div className="flex flex-col items-center">

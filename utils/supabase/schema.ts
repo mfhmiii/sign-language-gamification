@@ -154,6 +154,14 @@ export const user_achievement_progress = pgTable("user_achievement_progress", {
     .notNull()
     .$onUpdate(() => new Date()),
 });
+
+// basic quote table with its author
+export const quote = pgTable("quote", {
+  id: uuid("id").primaryKey().notNull(),
+  description: varchar("description", { length: 500 }).notNull(),
+  author: varchar("author", { length: 500 }).notNull(),
+})
+
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({
   progress: many(user_quiz_progress), // A user can have many progress records

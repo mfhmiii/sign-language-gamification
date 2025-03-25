@@ -92,6 +92,13 @@
       "when": 1742084322609,
       "tag": "0012_dizzy_omega_red",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1742788352708,
+      "tag": "0013_nappy_talisman",
+      "breakpoints": true
     }
   ]
 }
