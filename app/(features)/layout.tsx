@@ -7,6 +7,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "../globals.css";
+import Image from "next/image";
 import { BottomNav } from "@/components/bottom-nav";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -31,46 +32,28 @@ export default function FeatureLayout({
 }>) {
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <body className="bg-background text-foreground">
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <main className="">
-            <div className="">
-              {/* <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-                <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                  <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Next.js Supabase Starter</Link>
-                    <div className="flex items-center gap-2">
-                      <DeployButton />
-                    </div>
-                  </div>
-                </div>
-              </nav> */}
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
-              <div className="flex flex-col gap-20 max-w-7xl mx-auto p-10 bg-green-200">
-                {children}
-              </div>
-              <BottomNav />
-              {/* <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-                <p>
-                  Powered by{" "}
-                  <a
-                    href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-                    target="_blank"
-                    className="font-bold hover:underline"
-                    rel="noreferrer"
-                  >
-                    Supabase
-                  </a>
-                </p>
-                <ThemeSwitcher />
-              </footer> */}
+          <Image
+            src="/images/bg.jpg"
+            alt="Background"
+            fill
+            className="object-cover fixed top-0 left-0 w-full h-full z-[-1] blur-sm"
+            // quality={100}
+          />
+          <div className="bg-green-400 xl:mx-36 md:mx-14">
+            <div className="bg-green-400 h-16 md:h-20 shadow-md sticky top-0 z-50 flex items-center justify-center">
+              <h1 className="font-bold text-lg md:text-2xl">Contoh</h1>
             </div>
-          </main>
+            {children}
+          </div>
+          {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+          <BottomNav />
         </ThemeProvider>
       </body>
     </html>

@@ -87,12 +87,7 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen relative pb-20">
-      {/* Header */}
-      <div className="text-center sticky top-0 py-4 bg-green-200 z-50">
-        <h1 className="text-2xl font-bold">Leaderboard</h1>
-      </div>
-
+    <div className="flex flex-col min-h-screen relative">
       {/* Top 3 Players */}
       <div className="flex justify-center items-end px-4 mb-6 pt-8">
         {topPlayers.map((player) => {
@@ -170,7 +165,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Leaderboard Table */}
-      <div className="bg-white rounded-t-3xl flex-1 px-4 pt-6">
+      <div className="bg-white rounded-t-3xl flex-1 p-4 md:p-10 ">
         {/* Table Header */}
         <div className="flex justify-between mb-2 px-4">
           <div className="w-16 font-medium text-gray-600">Rank</div>
@@ -223,26 +218,6 @@ export default function LeaderboardPage() {
           ))}
         </div>
       </div>
-
-      {/* Sticky Current User Rank */}
-      {/* {currentUser && showSticky && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4">
-          <div className="max-w-lg mx-auto flex justify-between items-center">
-            <div className="w-16 font-medium">{currentUser.rank}</div>
-            <div className="flex-1 font-medium">
-              {currentUser.username}
-              <span className="text-blue-500 text-sm ml-2">(You)</span>
-            </div>
-            <div className="w-24 text-right font-medium flex items-center justify-end gap-1">
-              <Coins className="w-4 h-4 text-yellow-500" />
-              <span>{currentUser.points}</span>
-            </div>
-            <div className="w-20 text-right text-gray-600">
-              Level {Math.floor(currentUser.xp / 1000)}
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

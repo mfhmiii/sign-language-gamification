@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Mission = {
   id: string;
@@ -338,184 +339,224 @@ export default function MissionPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          {/* <img src="/mascot.png" alt="Mascot" className="w-12 h-12" /> */}
+    <div className="pt-8 md:pt-10">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between md:justify-around px-4 md:px-12">
           <div>
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-2xl md:text-3xl font-bold">
               Ingin dapat Poin tambahan?
             </h2>
-            <p className="text-sm text-gray-500">mulai selesaikan misi!</p>
+            <p className="text-lg md:text-xl font-semibold">
+              mulai selesaikan misi!
+            </p>
           </div>
+          <Image
+            src="/images/mission.svg"
+            alt="Mascot"
+            width={150}
+            height={150}
+            className="w-36 h-36 md:w-56 md:h-56"
+          />
         </div>
 
-        <Tabs defaultValue="misi" className="w-full">
-          <TabsList className="w-full">
-            <TabsTrigger value="pencapaian" className="w-full">
-              Pencapaian
-            </TabsTrigger>
-            <TabsTrigger value="misi" className="w-full">
-              Misi
-            </TabsTrigger>
-          </TabsList>
+        <div className="bg-white rounded-t-2xl pb-10">
+          <Tabs defaultValue="misi" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="pencapaian" className="w-full">
+                Pencapaian
+              </TabsTrigger>
+              <TabsTrigger value="misi" className="w-full">
+                Misi
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="pencapaian">
-            <div className="grid gap-4">
-              {achievements.map((achievement) => {
-                const progress = achievementProgress.find(
-                  (p) => p.achievement_id === achievement.id
-                );
-                const progressPoint = progress?.progress_point || 0;
-                const isCompleted = progress?.last_completed_at !== null;
-                const canClaim = progressPoint >= achievement.limit && !isCompleted;
+            <TabsContent value="pencapaian">
+              <div className="grid gap-4 p-4">
+                {achievements.map((achievement) => {
+                  const progress = achievementProgress.find(
+                    (p) => p.achievement_id === achievement.id
+                  );
+                  const progressPoint = progress?.progress_point || 0;
+                  const isCompleted = progress?.last_completed_at !== null;
+                  const canClaim =
+                    progressPoint >= achievement.limit && !isCompleted;
 
-                return (
-                  <Card key={achievement.id} className="p-4">
-                    <div>
+                  return (
+                    <Card key={achievement.id} className="p-4">
                       <div className="flex items-center gap-4">
-                        <div className="bg-gray-100 p-2 rounded-lg">
+                        <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-lg">
                           <img
                             src={achievement.badge_reward || "/target.png"}
                             alt={achievement.name}
                             className="w-8 h-8"
                           />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">{achievement.name}</h3>
-                          <p className="text-sm text-gray-500">{achievement.description}</p>
+                        <div className="flex-1">
+                          <h3 className="text-base font-medium">
+                            {achievement.name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {achievement.description}
+                          </p>
+                          <div className="mt-2">
+                            {isCompleted ? (
+                              <div className="text-green-500 font-medium">
+                                Selesai ✨
+                              </div>
+                            ) : canClaim ? (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  onClick={() =>
+                                    handleAchievementClaim(achievement)
+                                  }
+                                  className="bg-yellow-500 hover:bg-yellow-600 flex-1"
+                                >
+                                  Klaim Hadiah
+                                </Button>
+                                <div className="text-sm text-gray-600">
+                                  {progressPoint} / {achievement.limit}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <div className="w-full bg-gray-200 rounded-full h-4">
+                                  <div
+                                    className="bg-yellow-500 h-10 rounded-full"
+                                    style={{
+                                      width: `${(progressPoint / achievement.limit) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="text-sm text-gray-600 w-10 ml-2">
+                                  {progressPoint} / {achievement.limit}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-4">
-                        {isCompleted ? (
-                          <div className="text-green-500 font-medium text-center">Selesai ✨</div>
-                        ) : canClaim ? (
-                          <div className="flex items-center gap-4 mt-2">
-                            <Button
-                              onClick={() => handleAchievementClaim(achievement)}
-                              className="bg-yellow-500 hover:bg-yellow-600 w-full"
-                            >
-                              Klaim Hadiah
-                            </Button>
-                            <div className="text-sm w-10">
-                              {progressPoint} / {achievement.limit}
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-                              <div
-                                className="bg-primary h-2.5 rounded-full"
-                                style={{
-                                  width: `${(progressPoint / achievement.limit) * 100}%`,
-                                }}
-                              />
-                            </div>
-                            <div className="text-sm mt-1">
-                              {progressPoint} / {achievement.limit}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="misi">
-            <div className="grid gap-4">
-              {missions.map((mission) => {
-                const progress = userProgress.find(
-                  (p) => p.mission_id === mission.id
-                );
-                const progressPoint = progress?.progress_point || 0;
-                const progressLevel = progress?.current_level || 0;
-                const progressLimit = progress?.current_level_requirement || 0;
-                const canClaim = progressPoint >= mission.level_requirement;
-
-                return (
-                  <Card key={mission.id} className="p-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{mission.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {mission.description}
-                      </p>
-                      <div className="mt-2">
-                        <div className="text-sm">
-                          Level {progressLevel || 1}
-                        </div>
-                        {!canClaim ? (
-                          <>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-                              <div
-                                className="bg-primary h-2.5 rounded-full"
-                                style={{
-                                  width: `${(progressPoint / progressLimit) * 100}%`,
-                                }}
-                              />
-                            </div>
-                            <div className="text-sm mt-1">
-                              {progressPoint} / {progressLimit}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="flex items-center gap-4 mt-2">
-                            <Button
-                              onClick={() => handleClaim(mission)}
-                              className="bg-yellow-500 hover:bg-yellow-600 w-full"
-                            >
-                              Klaim Hadiah
-                            </Button>
-                            <div className="text-sm w-10">
-                              {progressPoint} / {progressLimit}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {showModal && (currentMission || currentAchievement) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
-            <h2 className="text-xl font-bold mb-4">KONSISTENSI ADALAH KUNCI</h2>
-            <div className="text-center mb-4">
-              {(currentMission?.badge_reward || currentAchievement?.badge_reward) && (
-                <div className="w-24 h-24 mx-auto mb-4">
-                  <img
-                    src={currentMission?.badge_reward || currentAchievement?.badge_reward}
-                    alt="Badge"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              )}
-              <p className="mb-2">Alhamdulillah kamu mendapatkan</p>
-              <div className="flex justify-center gap-4">
-                <p>+{currentMission?.points_reward || currentAchievement?.points_reward} 🪙</p>
-                <p>EXP +{currentMission?.xp_reward || currentAchievement?.xp_reward}</p>
+                    </Card>
+                  );
+                })}
               </div>
-            </div>
-            <Button
-              onClick={() => {
-                setShowModal(false);
-                setCurrentMission(null);
-                setCurrentAchievement(null);
-              }}
-              className="w-full"
-            >
-              Bagikan
-            </Button>
-          </div>
+            </TabsContent>
+
+            <TabsContent value="misi">
+              <div className="grid gap-4 p-4">
+                {missions.map((mission) => {
+                  const progress = userProgress.find(
+                    (p) => p.mission_id === mission.id
+                  );
+                  const progressPoint = progress?.progress_point || 0;
+                  const progressLevel = progress?.current_level || 0;
+                  const progressLimit =
+                    progress?.current_level_requirement || 0;
+                  const canClaim = progressPoint >= mission.level_requirement;
+
+                  return (
+                    <Card key={mission.id} className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-lg">
+                          <img
+                            src={mission.badge_reward || "/target.png"}
+                            alt={mission.name}
+                            className="w-8 h-8"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-base font-medium">
+                            {mission.name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {mission.description}
+                          </p>
+                          <div className="mt-2">
+                            <div className="text-sm text-gray-600 pb-2">
+                              Level {progressLevel || 1}
+                            </div>
+                            {!canClaim ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-full bg-gray-200 rounded-full h-4">
+                                  <div
+                                    className="bg-yellow-500 h-4 rounded-full"
+                                    style={{
+                                      width: `${(progressPoint / progressLimit) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="text-sm text-gray-600 w-10 ml-2">
+                                  {progressPoint} / {progressLimit}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  onClick={() => handleClaim(mission)}
+                                  className="bg-yellow-500 hover:bg-yellow-600 flex-1"
+                                >
+                                  Klaim Hadiah
+                                </Button>
+                                <div className="text-sm text-gray-600">
+                                  {progressPoint} / {progressLimit}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-      )}
+
+        {showModal && (currentMission || currentAchievement) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+              <h2 className="text-xl font-bold mb-4">
+                KONSISTENSI ADALAH KUNCI
+              </h2>
+              <div className="text-center mb-4">
+                {(currentMission?.badge_reward ||
+                  currentAchievement?.badge_reward) && (
+                  <div className="w-24 h-24 mx-auto mb-4">
+                    <img
+                      // src={currentMission?.badge_reward || currentAchievement?.badge_reward}
+                      alt="Badge"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+                <p className="mb-2">Alhamdulillah kamu mendapatkan</p>
+                <div className="flex justify-center gap-4">
+                  <p>
+                    +
+                    {currentMission?.points_reward ||
+                      currentAchievement?.points_reward}{" "}
+                    🪙
+                  </p>
+                  <p>
+                    EXP +
+                    {currentMission?.xp_reward || currentAchievement?.xp_reward}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setShowModal(false);
+                  setCurrentMission(null);
+                  setCurrentAchievement(null);
+                }}
+                className="w-full"
+              >
+                Bagikan
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
