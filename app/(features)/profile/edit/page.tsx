@@ -10,6 +10,7 @@ import { createClient } from "@/utils/supabase/client";
 import { updateProfile } from "../actions";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { signOutAction } from "@/app/actions";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -65,13 +66,13 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
+      setError("Image size should be less than 5MB");
       return;
     }
 
@@ -91,23 +92,23 @@ export default function ProfilePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      
+
       if (user) {
-        const fileExt = imageFile.name.split('.').pop();
+        const fileExt = imageFile.name.split(".").pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
         const { error: uploadError, data } = await supabase.storage
-          .from('profile.picture')
+          .from("profile.picture")
           .upload(fileName, imageFile);
 
         if (uploadError) {
-          setError('Failed to upload image');
+          setError("Failed to upload image");
           return;
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('profile.picture')
-          .getPublicUrl(fileName);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("profile.picture").getPublicUrl(fileName);
 
         formDataObj.append("profile_photo", publicUrl);
       }
@@ -118,7 +119,7 @@ export default function ProfilePage() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push("/profile/get");
+      router.push("/profile/view");
     }
   };
 
@@ -227,7 +228,12 @@ export default function ProfilePage() {
         </div>
 
         <div>
-          <Button variant="outline" className="w-full" type="button" onClick={() => router.push("/profile/get")}>
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
+            onClick={() => router.push("/profile/get")}
+          >
             Batal
           </Button>
         </div>
@@ -237,6 +243,7 @@ export default function ProfilePage() {
             variant="outline"
             className="w-full text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
             type="button"
+            onClick={() => signOutAction()}
           >
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>

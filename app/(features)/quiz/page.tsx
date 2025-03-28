@@ -78,23 +78,24 @@ export default async function QuizPage() {
       <main className="container px-4 py-8 pb-24">
         <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-bold">
+            {/* <h1 className="text-2xl font-bold">
               Halo, {user.username || "User"}...
-            </h1>
-            <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
+            </h1> */}
+            <h1 className="text-3xl font-bold text-primary">Ayo Main Game!</h1>
+            <h2 className="text-xl font-semibold text-primary">Selesaikan Quiz untuk mendapatkan Hadiah!</h2>
           </div>
 
-          <StatsCard
+          {/* <StatsCard
             points={user.points || 0}
             ranking={userRank?.rank || 0}
             level={Math.floor((user.xp || 0) / 1000)}
-          />
+          /> */}
 
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h3 className="text-xl font-semibold mb-4">
               Pilih Level Belajar !
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {levelProgress?.map((level) => {
                 const previousLevel = getPreviousLevel(level);
                 const isLocked =

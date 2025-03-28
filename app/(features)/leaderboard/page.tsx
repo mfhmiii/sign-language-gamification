@@ -189,7 +189,7 @@ export default function LeaderboardPage() {
               </div>
               <div
                 className="flex-1 font-medium flex items-center gap-2 cursor-pointer"
-                onClick={() => router.push(`/profile/get`)}
+                onClick={() => router.push(`/profile/view/${player.username}`)}
               >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200">
                   <Image

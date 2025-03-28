@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Flame, Coins, BookOpen, Lock, Trophy } from "lucide-react";
+import { Flame, Coins, BookOpen, Lock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
+import { useParams } from "next/navigation";
 
 interface UserData {
+  id: string;
   email: string;
   username: string;
   profile_photo: string | null;
@@ -19,75 +21,58 @@ interface UserData {
   longest_quiz_streak: number;
 }
 
-export default function UserProfile({
-  params,
-}: {
-  params: { userId: string };
-}) {
+interface Mission {
+  id: string;
+  name: string;
+  badge_reward: string | null;
+}
+
+interface MissionProgress {
+  mission_id: string;
+  current_level: number;
+}
+
+export default function ViewUserProfile() {
+  const { username } = useParams();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [missionProgress, setMissionProgress] = useState<MissionProgress[]>([]);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchUserData() {
       try {
-        // Get user data and achievement progress
-        const [
-          { data: userData, error },
-          { data: beginnerProgress },
-          { data: intermediateProgress },
-          { data: expertProgress },
-        ] = await Promise.all([
-          supabase
-            .from("users")
-            .select(
-              "email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
-            )
-            .eq("id", params.userId)
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", params.userId)
-            .eq("achievement_id", "0cc95048-c100-4f6c-bf4c-3b2ec372cddb")
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", params.userId)
-            .eq("achievement_id", "20775b28-295d-40a7-b403-8ac2046d5719")
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", params.userId)
-            .eq("achievement_id", "946200c8-a676-4ffc-ab97-3015ddaa65af")
-            .single(),
-        ]);
+        // Get user data by username
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select(
+            "id, email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
+          )
+          .eq("username", username)
+          .single();
 
         if (error) throw error;
         if (userData) {
-          // Update badges if achievements are completed
-          const updates = {
-            badges1: beginnerProgress?.last_completed_at
-              ? true
-              : userData.badges1,
-            badges2: intermediateProgress?.last_completed_at
-              ? true
-              : userData.badges2,
-            badges3: expertProgress?.last_completed_at
-              ? true
-              : userData.badges3,
-          };
-
-          Object.assign(userData, updates);
           setUserData(userData);
-        }
+          // Get user rank
+          const rankData = await getUserRank(userData.id);
+          if (rankData) setUserRank(rankData.rank);
 
-        // Get user rank
-        const rankData = await getUserRank(params.userId);
-        if (rankData) setUserRank(rankData.rank);
+          // Get missions and mission progress
+          const [{ data: missionsData }, { data: missionProgressData }] =
+            await Promise.all([
+              supabase.from("mission").select("id, name, badge_reward"),
+              supabase
+                .from("user_mission_progress")
+                .select("mission_id, current_level")
+                .eq("user_id", userData.id),
+            ]);
+
+          if (missionsData) setMissions(missionsData);
+          if (missionProgressData) setMissionProgress(missionProgressData);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -95,8 +80,10 @@ export default function UserProfile({
       }
     }
 
-    fetchUserData();
-  }, [params.userId, supabase]);
+    if (username) {
+      fetchUserData();
+    }
+  }, [username, supabase]);
 
   if (loading) {
     return (
@@ -138,6 +125,9 @@ export default function UserProfile({
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-4">
             <h2 className="text-xl font-semibold">{userData.username}</h2>
+            <div className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs">
+              {userData.email}
+            </div>
           </div>
         </div>
       </div>
@@ -195,7 +185,13 @@ export default function UserProfile({
               >
                 {userData.badges1 ? (
                   <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
+                    <Image
+                      src="/images/beginner.svg"
+                      alt="Beginner Badge"
+                      width={24}
+                      height={24}
+                      className="text-red-500"
+                    />
                   </div>
                 ) : (
                   <Lock className="text-gray-400" size={24} />
@@ -213,7 +209,13 @@ export default function UserProfile({
               >
                 {userData.badges2 ? (
                   <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
+                    <Image
+                      src="/images/intermediate.svg"
+                      alt="Intermediate Badge"
+                      width={24}
+                      height={24}
+                      className="text-red-500"
+                    />
                   </div>
                 ) : (
                   <Lock className="text-gray-400" size={24} />
@@ -231,7 +233,13 @@ export default function UserProfile({
               >
                 {userData.badges3 ? (
                   <div className="bg-yellow-300 p-1 rounded-full">
-                    <BookOpen className="text-red-500" size={24} />
+                    <Image
+                      src="/images/expert.svg"
+                      alt="Expert Badge"
+                      width={24}
+                      height={24}
+                      className="text-red-500"
+                    />
                   </div>
                 ) : (
                   <Lock className="text-gray-400" size={24} />
@@ -240,6 +248,52 @@ export default function UserProfile({
             </div>
             <span className="mt-2 text-sm text-gray-600">Expert</span>
           </div>
+        </div>
+      </div>
+
+      {/* Misi Section */}
+      <div className="pb-10">
+        <h4 className="text-center text-gray-700 text-lg mb-4">Misi</h4>
+        <div className="flex sm:gap-1 justify-around">
+          {missions.map((mission) => {
+            const progress = missionProgress.find(
+              (p) => p.mission_id === mission.id
+            );
+            const currentLevel = progress?.current_level || 1;
+            return (
+              <div key={mission.id} className="flex flex-col items-center">
+                <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
+                  <div
+                    className={`absolute inset-0 ${progress ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
+                  >
+                    {progress ? (
+                      <div className="bg-yellow-300 p-1 rounded-full">
+                        {mission.badge_reward ? (
+                          <Image
+                            src={mission.badge_reward}
+                            alt={mission.name}
+                            width={24}
+                            height={24}
+                            className="text-red-500"
+                          />
+                        ) : (
+                          <BookOpen className="text-red-500" size={24} />
+                        )}
+                      </div>
+                    ) : (
+                      <Lock className="text-gray-400" size={24} />
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2 text-center">
+                  <span className="text-sm text-gray-600">{mission.name}</span>
+                  <span className="block text-xs text-gray-500">
+                    Level {currentLevel}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

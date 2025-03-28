@@ -225,7 +225,7 @@ export default function QuizPageClient({ levelId }: { levelId: string }) {
     <main className="max-w-lg mx-auto px-4 py-4">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between w-full shadow-sm">
           <Button
             variant="ghost"
             size="icon"

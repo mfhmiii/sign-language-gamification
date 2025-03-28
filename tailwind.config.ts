@@ -58,6 +58,12 @@ const config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      extend: {
+        clipPath: {
+          hexagon:
+            "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+        },
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

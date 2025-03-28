@@ -46,7 +46,7 @@ export default function FeatureLayout({
             className="object-cover fixed top-0 left-0 w-full h-full z-[-1] blur-sm"
             // quality={100}
           />
-          <div className="bg-green-400 xl:mx-36 md:mx-14">
+          <div className="bg-white xl:mx-36 md:mx-14 pb-10">
             <div className="bg-green-400 h-16 md:h-20 shadow-md sticky top-0 z-50 flex items-center justify-center">
               <h1 className="font-bold text-lg md:text-2xl">Contoh</h1>
             </div>
