@@ -384,11 +384,11 @@ export default function MissionPage() {
                   return (
                     <Card key={achievement.id} className="p-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-lg">
+                        <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center bg-green-100 rounded-lg">
                           <img
-                            src={achievement.badge_reward || "/target.png"}
+                            src={achievement.badge_reward || undefined}
                             alt={achievement.name}
-                            className="w-8 h-8"
+                            className="w-12 h-12 md:w-20 md:h-20"
                           />
                         </div>
                         <div className="flex-1">
@@ -456,11 +456,11 @@ export default function MissionPage() {
                   return (
                     <Card key={mission.id} className="p-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-lg">
+                        <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center bg-green-100 rounded-lg">
                           <img
-                            src={mission.badge_reward || "/target.png"}
+                            src={mission.badge_reward || undefined}
                             alt={mission.name}
-                            className="w-8 h-8"
+                            className="w-12 h-12 md:w-20 md:h-20"
                           />
                         </div>
                         <div className="flex-1">
@@ -516,14 +516,15 @@ export default function MissionPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg max-w-sm w-full">
               <h2 className="text-xl font-bold mb-4">
-                KONSISTENSI ADALAH KUNCI
+                {currentMission?.name ||
+                  currentAchievement?.name}
               </h2>
               <div className="text-center mb-4">
                 {(currentMission?.badge_reward ||
                   currentAchievement?.badge_reward) && (
                   <div className="w-24 h-24 mx-auto mb-4">
                     <img
-                      // src={currentMission?.badge_reward || currentAchievement?.badge_reward}
+                      src={currentMission?.badge_reward ?? currentAchievement?.badge_reward ?? undefined}
                       alt="Badge"
                       className="w-full h-full object-contain"
                     />
@@ -551,7 +552,7 @@ export default function MissionPage() {
                 }}
                 className="w-full"
               >
-                Bagikan
+                Lanjut
               </Button>
             </div>
           </div>

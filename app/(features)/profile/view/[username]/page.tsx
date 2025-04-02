@@ -125,9 +125,6 @@ export default function ViewUserProfile() {
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-4">
             <h2 className="text-xl font-semibold">{userData.username}</h2>
-            <div className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs">
-              {userData.email}
-            </div>
           </div>
         </div>
       </div>
@@ -179,72 +176,60 @@ export default function ViewUserProfile() {
         <div className="flex sm:gap-1 justify-around">
           {/* Beginner Badge */}
           <div className="flex flex-col items-center">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges1 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges1 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <Image
-                      src="/images/beginner.svg"
-                      alt="Beginner Badge"
-                      width={24}
-                      height={24}
-                      className="text-red-500"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges1 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/beginner.svg"
+                    alt="Beginner Badge"
+                    width={60}
+                    height={60}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
             </div>
             <span className="mt-2 text-sm text-gray-600">Beginner</span>
           </div>
 
           {/* Intermediate Badge */}
           <div className="flex flex-col items-center ">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges2 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges2 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <Image
-                      src="/images/intermediate.svg"
-                      alt="Intermediate Badge"
-                      width={24}
-                      height={24}
-                      className="text-red-500"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges2 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/intermediate.svg"
+                    alt="Intermediate Badge"
+                    width={50}
+                    height={50}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
             </div>
             <span className="mt-2 text-sm text-gray-600">Intermediet</span>
           </div>
 
           {/* Expert Badge */}
           <div className="flex flex-col items-center">
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-              <div
-                className={`absolute inset-0 ${userData.badges3 ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-              >
-                {userData.badges3 ? (
-                  <div className="bg-yellow-300 p-1 rounded-full">
-                    <Image
-                      src="/images/expert.svg"
-                      alt="Expert Badge"
-                      width={24}
-                      height={24}
-                      className="text-red-500"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400" size={24} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges3 ? (
+                <div className="bg-yellow-300 m-1 items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/expert.svg"
+                    alt="Expert Badge"
+                    width={50}
+                    height={50}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
             </div>
             <span className="mt-2 text-sm text-gray-600">Expert</span>
           </div>
@@ -262,28 +247,24 @@ export default function ViewUserProfile() {
             const currentLevel = progress?.current_level || 1;
             return (
               <div key={mission.id} className="flex flex-col items-center">
-                <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative">
-                  <div
-                    className={`absolute inset-0 ${progress ? "bg-teal-100" : "bg-gray-100"} rounded-hexagon flex items-center justify-center`}
-                  >
-                    {progress ? (
-                      <div className="bg-yellow-300 p-1 rounded-full">
-                        {mission.badge_reward ? (
-                          <Image
-                            src={mission.badge_reward}
-                            alt={mission.name}
-                            width={24}
-                            height={24}
-                            className="text-red-500"
-                          />
-                        ) : (
-                          <BookOpen className="text-red-500" size={24} />
-                        )}
-                      </div>
-                    ) : (
-                      <Lock className="text-gray-400" size={24} />
-                    )}
-                  </div>
+                <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200">
+                  {progress ? (
+                    <div className="bg-yellow-300 m-1 items-center flex justify-center absolute inset-0 clip-hexagon">
+                      {mission.badge_reward ? (
+                        <Image
+                          src={mission.badge_reward}
+                          alt={mission.name}
+                          width={40}
+                          height={40}
+                          className="text-red-500 md:w-20"
+                        />
+                      ) : (
+                        <BookOpen className="text-red-500" size={24} />
+                      )}
+                    </div>
+                  ) : (
+                    <Lock className="text-gray-400" size={24} />
+                  )}
                 </div>
                 <div className="mt-2 text-center">
                   <span className="text-sm text-gray-600">{mission.name}</span>

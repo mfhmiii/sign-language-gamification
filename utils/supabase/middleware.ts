@@ -22,17 +22,17 @@ export const updateSession = async (request: NextRequest) => {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+              request.cookies.set(name, value)
             );
             response = NextResponse.next({
               request,
             });
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
+              response.cookies.set(name, value, options)
             );
           },
         },
-      },
+      }
     );
 
     // This will refresh session if expired - required for Server Components
@@ -40,6 +40,15 @@ export const updateSession = async (request: NextRequest) => {
     const user = await supabase.auth.getUser();
     const publicRoutes = ["/", "/sign-in", "/sign-up"];
     const isPrivateRoute = !publicRoutes.includes(request.nextUrl.pathname);
+
+    // Handle reset-password route
+    if (request.nextUrl.pathname === "/reset-password") {
+      const token = request.nextUrl.searchParams.get("token");
+      if (!token && !user.error) {
+        // If user is logged in and no token is present, redirect to home
+        return NextResponse.redirect(new URL("/home", request.url));
+      }
+    }
 
     // protected routes
     if (isPrivateRoute && user.error) {

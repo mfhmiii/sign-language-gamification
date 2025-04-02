@@ -1,46 +1,90 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import Hero from "@/components/hero";
-import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
-import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
-import DeployButton from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import HeaderAuth from "@/components/header-auth";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
 import "./globals.css";
 
-export default async function LandingPage() {
-  const supabase = createServerComponentClient({ cookies });
+export default function LandingPage() {
+  const router = useRouter();
+  const supabase = createClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        router.push("/home");
+      }
+    };
 
-  if (session) {
-    redirect("/home");
-  }
+    checkUser();
+  }, [router, supabase]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <span>Sign Language Quiz</span>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
+    <main className="min-h-screen bg-gradient-to-b from-green-400/5 to-green-400/10">
+      <nav className="w-full flex justify-between items-center px-6 py-4">
+        <div className="text-2xl font-bold text-green-400">SignQuest</div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h1 className="text-4xl lg:text-6xl font-bold">
+              Belajar Bahasa Isyarat Melalui
+              <span className="text-green-400 block">
+                Pengalaman Bermain Game
+              </span>
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Kuasai bahasa isyarat sambil bersenang-senang! Selesaikan misi,
+              dapatkan hadiah, dan pantau perkembanganmu dalam lingkungan
+              belajar yang menyenangkan.
+            </p>
+            <div className="flex gap-4">
+              <Button
+                size="lg"
+                onClick={() => router.push("/sign-in")}
+                className="text-lg bg-green-400 hover:bg-green-500"
+              >
+                Mulai Sekarang
+              </Button>
             </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+
+            {/* <div className="grid grid-cols-3 gap-8 pt-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400">60+</div>
+                <div className="text-sm text-muted-foreground">
+                  Kata Isyarat
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400">50+</div>
+                <div className="text-sm text-muted-foreground">Pencapaian</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400">24/7</div>
+                <div className="text-sm text-muted-foreground">
+                  Akses Belajar
+                </div>
+              </div>
+            </div> */}
           </div>
-        </nav>
-        <div className="flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Get Started</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
+
+          <div className="relative">
+            <div className="w-full aspect-square max-w-[600px] mx-auto">
+              <DotLottieReact
+                src="https://lottie.host/e84f35ae-372b-4b05-844e-bf64105a1d9a/Xmb2Lo5si9.lottie"
+                loop
+                autoplay
+                className="w-full h-full"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </main>

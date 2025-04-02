@@ -1,5 +1,7 @@
 import NextLogo from "./next-logo";
 import SupabaseLogo from "./supabase-logo";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
 
 export default function Header() {
   return (
@@ -16,6 +18,11 @@ export default function Header() {
         <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
           <NextLogo />
         </a>
+        <DotLottieReact
+          src="https://lottie.host/e84f35ae-372b-4b05-844e-bf64105a1d9a/Xmb2Lo5si9.lottie"
+          loop
+          autoplay
+        />
       </div>
       <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
       <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">

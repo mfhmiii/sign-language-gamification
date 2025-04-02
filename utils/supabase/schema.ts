@@ -162,6 +162,12 @@ export const quote = pgTable("quote", {
   author: varchar("author", { length: 500 }).notNull(),
 })
 
+export const dictionary = pgTable("dictionary", {
+  id: uuid("id").primaryKey().notNull(),
+  word: varchar("word", { length: 500 }).notNull(),
+  videoUrl: varchar("video_url", { length: 500 }),
+})
+
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({
   progress: many(user_quiz_progress), // A user can have many progress records

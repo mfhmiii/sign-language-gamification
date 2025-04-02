@@ -4,13 +4,6 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@/utils/orm";
-import {
-  users,
-  quiz_questions,
-  user_quiz_progress,
-} from "@/utils/supabase/schema";
-import { eq } from "drizzle-orm";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -255,7 +248,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?redirect_to=/protected/reset-password`,
+    redirectTo: `${origin}/auth/callback?redirect_to=/reset-password`,
   });
 
   if (error) {
@@ -274,7 +267,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password."
+    "Email berhasil dikirim! Buka email untuk mereset password anda"
   );
 };
 
@@ -287,16 +280,16 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (!password || !confirmPassword) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
-      "Password and confirm password are required"
+      "/reset-password",
+      "Tolong isi password and konfirmasi password"
     );
   }
 
   if (password !== confirmPassword) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
-      "Passwords do not match"
+      "/reset-password",
+      "Passwords tidak cocok"
     );
   }
 
@@ -307,16 +300,16 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (error) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
-      "Password update failed"
+      "/reset-password",
+      "Password gagal diupdate"
     );
   }
 
-  encodedRedirect("success", "/protected/reset-password", "Password updated");
+  encodedRedirect("success", "/sign-in", "Password berhasil diupdate");
 };
 
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return redirect("/sign-in");
+  return redirect("/");
 };

@@ -222,7 +222,7 @@ export default function QuizPageClient({ levelId }: { levelId: string }) {
   };
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-4">
+    <main className="bg-white max-w-lg mx-auto px-4 py-4">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between w-full shadow-sm">

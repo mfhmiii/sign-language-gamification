@@ -1,16 +1,30 @@
-import { signOutAction } from "@/app/actions";
+"use client";
+
+import { useEffect, useState } from "react";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/client";
 
-export default async function AuthButton() {
-  const supabase = await createClient();
+export default function AuthButton() {
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   if (!hasEnvVars) {
     return (
@@ -51,11 +65,12 @@ export default async function AuthButton() {
   return user ? (
     <div className="flex items-center gap-4">
       Hey, {user.email}!
-      <form action={signOutAction}>
-        <Button type="submit" variant={"outline"}>
-          Sign out
-        </Button>
-      </form>
+      <Button
+        variant={"outline"}
+        onClick={() => supabase.auth.signOut()}
+      >
+        Sign out
+      </Button>
     </div>
   ) : (
     <div className="flex gap-2">
