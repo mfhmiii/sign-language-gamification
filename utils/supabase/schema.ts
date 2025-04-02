@@ -164,8 +164,9 @@ export const quote = pgTable("quote", {
 
 export const dictionary = pgTable("dictionary", {
   id: uuid("id").primaryKey().notNull(),
-  word: varchar("word", { length: 500 }).notNull(),
+  value: varchar("value", { length: 500 }).notNull(),
   videoUrl: varchar("video_url", { length: 500 }),
+  type: varchar("type"),
 })
 
 // Users Relations

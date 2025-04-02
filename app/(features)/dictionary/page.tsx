@@ -1,52 +1,69 @@
-import Image from "next/image"
-import { Search, Mic, ArrowLeft } from "lucide-react"
-import WordList from "@/components/list"
+"use client";
+
+import Image from "next/image";
+import { Search, Mic, ArrowLeft } from "lucide-react";
+import List from "@/components/list";
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-white">
-      <div className="bg-green-200 pb-8 rounded-b-3xl">
-        <div className="container mx-auto px-4 pt-4">
-          <div className="flex items-center gap-4 mb-6">
-            <button className="p-1">
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-2xl font-bold">Kamus Bahasa Isyarat</h1>
-          </div>
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-          <div className="flex">
-            <div className="w-3/5">
-              <p className="text-xl font-medium mb-4">Belajar dari kamus bahasa isyarat untuk menyelesaikan quis!</p>
-            </div>
-            <div className="w-2/5 relative">
-              <Image
-                src="/placeholder.svg?height=150&width=150"
-                alt="Person illustration"
-                width={150}
-                height={150}
-                className="absolute bottom-0 right-0"
+  const handleSearch = () => {
+    setSearchTerm(searchQuery.toLowerCase());
+  };
+
+  return (
+    <main className="pt-8 md:pt-10 min-h-screen flex flex-col">
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center justify-between md:justify-around px-4 md:px-12">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Kamus Bahasa Isyarat
+            </h2>
+            <p className="text-lg md:text-xl font-semibold">
+              Belajar dari kamus bahasa isyarat untuk menyelesaikan quis!
+            </p>
+          </div>
+          <Image
+            src="/images/mission.svg"
+            alt="Mascot"
+            width={150}
+            height={150}
+            className="w-36 h-36 md:w-56 md:h-56"
+          />
+        </div>
+
+        <div className="bg-white container mx-auto px-4 rounded-t-3xl pb-10 flex-1">
+          <div className="bg-white rounded-xl shadow-lg p-2 mb-6 flex gap-2">
+            <div className="bg-gray-100 rounded-full flex items-center px-4 py-2 flex-1">
+              <input
+                type="text"
+                placeholder="Cari Kosa Kata"
+                className="bg-transparent w-full focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
               />
             </div>
+            <button
+              className="bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors"
+              onClick={handleSearch}
+            >
+              <Search size={20} className="text-gray-600" />
+            </button>
+            <button className="bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors">
+              <Mic size={20} className="text-gray-600" />
+            </button>
           </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-4 -mt-6">
-        <div className="flex gap-2 mb-6">
-          <div className="bg-gray-200 rounded-full flex items-center px-4 py-2 flex-1">
-            <input type="text" placeholder="Cari Kosa Kata" className="bg-transparent w-full focus:outline-none" />
-          </div>
-          <button className="bg-gray-200 rounded-full p-3">
-            <Search size={20} />
-          </button>
-          <button className="bg-gray-200 rounded-full p-3">
-            <Mic size={20} />
-          </button>
+          <List searchQuery={searchTerm} />
         </div>
-
-        <WordList />
       </div>
     </main>
-  )
+  );
 }
-

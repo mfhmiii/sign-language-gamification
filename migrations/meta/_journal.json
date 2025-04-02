@@ -99,6 +99,13 @@
       "when": 1742788352708,
       "tag": "0013_nappy_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1743574845499,
+      "tag": "0014_careless_annihilus",
+      "breakpoints": true
     }
   ]
 }

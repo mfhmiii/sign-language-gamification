@@ -132,7 +132,7 @@ export default async function QuizPage() {
                 </Card>
               </Link>
             )}
-            <Link href="/kamus">
+            <Link href="/dictionary">
               <Card className="p-6 hover:bg-accent transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">

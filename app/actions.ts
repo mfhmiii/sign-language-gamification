@@ -170,7 +170,10 @@ export const signUpAction = async (formData: FormData) => {
       .insert(achievementProgressRecords);
 
     if (achievementProgressError) {
-      console.error("Achievement progress creation error:", achievementProgressError);
+      console.error(
+        "Achievement progress creation error:",
+        achievementProgressError
+      );
       return encodedRedirect(
         "error",
         "/sign-up",
@@ -286,11 +289,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   }
 
   if (password !== confirmPassword) {
-    encodedRedirect(
-      "error",
-      "/reset-password",
-      "Passwords tidak cocok"
-    );
+    encodedRedirect("error", "/reset-password", "Passwords tidak cocok");
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -298,11 +297,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
-    encodedRedirect(
-      "error",
-      "/reset-password",
-      "Password gagal diupdate"
-    );
+    encodedRedirect("error", "/reset-password", "Password gagal diupdate");
   }
 
   encodedRedirect("success", "/sign-in", "Password berhasil diupdate");
@@ -312,4 +307,69 @@ export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   return redirect("/");
+};
+
+export const getDictionaryWords = async (searchQuery?: string) => {
+  try {
+    console.log("Starting dictionary fetch with search query:", searchQuery);
+    const supabase = await createClient();
+    let query = supabase
+      .from("dictionary")
+      .select("id, value, video_url, type")
+      .order("value");
+
+    if (searchQuery) {
+      console.log("Applying search filter:", searchQuery);
+      const words = searchQuery.toLowerCase().trim().split(/\s+/);
+
+      if (words.length === 1) {
+        // Single word prefix search
+        query = query.ilike("value", `${words[0]}%`);
+      } else if (words.length > 1) {
+        // Multi-word search
+        const lastWord = words[words.length - 1];
+        const otherWords = words.slice(0, -1);
+
+        // Create conditions for matching exact words and prefix for the last word
+        const conditions = otherWords.map(
+          (word) => `(value ilike '${word}' or type ilike '${word}')`
+        );
+
+        // Add prefix condition for the last word
+        conditions.push(
+          `(value ilike '${lastWord}%' or type ilike '${lastWord}%')`
+        );
+
+        // Combine all conditions
+        query = query.or(conditions.join(","));
+      }
+    }
+
+    console.log("Executing query...");
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Database error fetching dictionary:", error);
+      return [];
+    }
+
+    console.log("Raw data from database:", data);
+
+    if (!data || data.length === 0) {
+      console.log("No dictionary data found in database");
+      return [];
+    }
+
+    const mappedData = data.map((word) => ({
+      id: word.id,
+      value: word.value,
+      videoUrl: word.video_url,
+    }));
+
+    console.log("Processed dictionary data:", mappedData);
+    return mappedData;
+  } catch (error) {
+    console.error("Unexpected error in getDictionaryWords:", error);
+    return [];
+  }
 };
