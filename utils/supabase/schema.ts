@@ -37,34 +37,72 @@ export const quiz_level = pgTable("quiz_level", {
   order: integer("order").notNull(),
 });
 
-// Level Streaks Table
-export const level_streaks = pgTable("level_streaks", {
+// Login Streaks Table
+export const login_streaks = pgTable("login_streaks", {
   id: uuid("id").primaryKey().notNull(),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id),
-  levelId: uuid("level_id")
-    .notNull()
-    .references(() => quiz_level.id),
   currentStreak: integer("current_streak").default(0),
-  lastQuestionId: uuid("last_question_id").references(() => quiz_questions.id), // To track where user left off
+  lastLoginDate: timestamp("last_login_date").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .notNull()
     .$onUpdate(() => new Date()),
 });
 
-// Quiz Questions Table
+// Quiz Types Enum
+export const QuizType = {
+  MULTIPLE_CHOICE: "multiple_choice",
+  GESTURE_TO_TEXT: "gesture_to_text",
+  MEMORY_MATCH: "memory_match",
+} as const;
+
+// Quiz Questions Table (Base table)
 export const quiz_questions = pgTable("quiz_questions", {
   id: uuid("id").primaryKey().notNull(),
   levelId: uuid("level_id")
     .notNull()
     .references(() => quiz_level.id),
-  type: varchar("type", { length: 256 }).notNull(),
+  type: varchar("type", { length: 256 })
+    .notNull()
+    .default(QuizType.MULTIPLE_CHOICE),
+  dictionaryId: uuid("dictionary_id").references(() => dictionary.id),
   questionText: varchar("question_text", { length: 500 }).notNull(),
   videoUrl: varchar("video_url", { length: 500 }),
+  stage:integer("stage"),
+  order: integer("order").default(0),
+});
+
+// Multiple Choice Questions Table
+export const multiple_choice_questions = pgTable("multiple_choice_questions", {
+  id: uuid("id").primaryKey().notNull(),
+  questionId: uuid("question_id")
+    .notNull()
+    .references(() => quiz_questions.id),
   correctAnswer: varchar("correct_answer", { length: 500 }).notNull(),
-  options: jsonb("options"),
+  options: jsonb("options").notNull(),
+});
+
+// Gesture to Text Questions Table
+export const gesture_to_text_questions = pgTable("gesture_to_text_questions", {
+  id: uuid("id").primaryKey().notNull(),
+  questionId: uuid("question_id")
+    .notNull()
+    .references(() => quiz_questions.id),
+  correctAnswer: varchar("correct_answer", { length: 500 }).notNull(),
+  gestureVideoUrl: varchar("gesture_video_url", { length: 500 }).notNull(),
+});
+
+// Memory Match Questions Table
+export const memory_match_questions = pgTable("memory_match_questions", {
+  id: uuid("id").primaryKey().notNull(),
+  questionId: uuid("question_id")
+    .notNull()
+    .references(() => quiz_questions.id),
+  correctAnswer: jsonb("correct_answer").notNull(), // Array of {text: string, videoUrl: string} pairs
+  options: jsonb("options").notNull(), // Array of possible matches including distractors
+  gridSize: integer("grid_size").default(4), // Number of pairs to show (2x2, 3x3, etc)
 });
 
 // User Quiz Progress Table
@@ -87,7 +125,7 @@ export const mission = pgTable("mission", {
   id: uuid("id").primaryKey().notNull(),
   name: varchar("name", { length: 500 }).notNull(),
   description: varchar("description", { length: 500 }),
-  level: integer("level").default(1).notNull(),
+  level: integer("level").default(1),
   levelRequirement: integer("level_requirement").notNull(), // Number of completions needed to level up
   xpReward: integer("xp_reward").notNull(), // Base XP reward for current level
   pointsReward: integer("points_reward").notNull(), // Base points reward for current level
@@ -108,7 +146,7 @@ export const user_mission_progress = pgTable("user_mission_progress", {
   missionId: uuid("mission_id")
     .notNull()
     .references(() => mission.id),
-  progress_point: integer("progress_point").default(0), // Track number of times completed
+  progressPoint: integer("progress_point").default(0), // Track number of times completed
   currentLevel: integer("current_level").default(1), // Current level of this mission for the user
   currentLevelRequirement: integer("current_level_requirement").notNull(), // Current level's completion requirement
   currentXpReward: integer("current_xp_reward").notNull(), // Current level's XP reward
@@ -121,15 +159,13 @@ export const user_mission_progress = pgTable("user_mission_progress", {
     .$onUpdate(() => new Date()),
 });
 
-// Achievement Table
-export const achievement = pgTable("achievement", {
+export const daily_mission = pgTable("daily_mission", {
   id: uuid("id").primaryKey().notNull(),
   name: varchar("name", { length: 500 }).notNull(),
-  description: varchar("description", { length: 500 }), // Type of achievement (streak, mission, leaderboard)
-  limit: integer("limit").notNull(),
+  description: varchar("description", { length: 500 }),
   xpReward: integer("xp_reward").notNull(),
   pointsReward: integer("points_reward").notNull(),
-  badgeReward: varchar("badge_reward", { length: 500 }),
+  resetTime: timestamp("reset_time").notNull(), // When the daily mission resets
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -137,42 +173,93 @@ export const achievement = pgTable("achievement", {
     .$onUpdate(() => new Date()),
 });
 
-// User Achievement Progress Table
-export const user_achievement_progress = pgTable("user_achievement_progress", {
-  id: uuid("id").primaryKey().notNull(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id),
-  achievementId: uuid("achievement_id")
-    .notNull()
-    .references(() => achievement.id),
-  progress_point: integer("progress_point").default(0),
-  lastCompletedAt: timestamp("last_completed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+// User Daily Mission Progress Table
+export const user_daily_mission_progress = pgTable(
+  "user_daily_mission_progress",
+  {
+    id: uuid("id").primaryKey().notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    dailyMissionId: uuid("daily_mission_id")
+      .notNull()
+      .references(() => daily_mission.id),
+    progressPoint: integer("progress_point").default(0),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  }
+);
 
 // basic quote table with its author
 export const quote = pgTable("quote", {
   id: uuid("id").primaryKey().notNull(),
   description: varchar("description", { length: 500 }).notNull(),
   author: varchar("author", { length: 500 }).notNull(),
-})
+});
 
 export const dictionary = pgTable("dictionary", {
   id: uuid("id").primaryKey().notNull(),
   value: varchar("value", { length: 500 }).notNull(),
   videoUrl: varchar("video_url", { length: 500 }),
   type: varchar("type"),
-})
+});
+
+// User Dictionary Progress Table
+export const user_dictionary_progress = pgTable("user_dictionary_progress", {
+  id: uuid("id").primaryKey().notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  dictionaryId: uuid("dictionary_id")
+    .notNull()
+    .references(() => dictionary.id),
+  progressPoint: integer("progress_point").default(0),
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+// Dictionary Relations
+export const dictionaryRelations = relations(dictionary, ({ many }) => ({
+  userProgress: many(user_dictionary_progress), // A dictionary entry can have many user progress records
+}));
+
+// User Dictionary Progress Relations
+export const userDictionaryProgressRelations = relations(
+  user_dictionary_progress,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [user_dictionary_progress.userId],
+      references: [users.id],
+    }),
+    dictionary: one(dictionary, {
+      fields: [user_dictionary_progress.dictionaryId],
+      references: [dictionary.id],
+    }),
+  })
+);
 
 // Users Relations
 export const usersRelations = relations(users, ({ many }) => ({
   progress: many(user_quiz_progress), // A user can have many progress records
-  achievementProgress: many(user_achievement_progress), // A user can have many achievement progress records
+  missionProgress: many(user_mission_progress), // A user can have many mission progress records
+  dailyMissionProgress: many(user_daily_mission_progress), // A user can have many daily mission progress records
+  loginStreak: many(login_streaks), // A user can have login streak records
+}));
+
+// Login Streaks Relations
+export const loginStreaksRelations = relations(login_streaks, ({ one }) => ({
+  user: one(users, {
+    fields: [login_streaks.userId],
+    references: [users.id],
+  }),
 }));
 
 // Quiz Levels Relations
@@ -235,22 +322,21 @@ export const userMissionProgressRelations = relations(
     }),
   })
 );
-// Achievement Relations
-export const achievementRelations = relations(achievement, ({ many }) => ({
-  userProgress: many(user_achievement_progress), // An achievement can have many user progress records
+
+export const dailyMissionRelations = relations(daily_mission, ({ many }) => ({
+  userProgress: many(user_daily_mission_progress),
 }));
 
-// User Achievement Progress Relations
-export const userAchievementProgressRelations = relations(
-  user_achievement_progress,
+export const userDailyMissionProgressRelations = relations(
+  user_daily_mission_progress,
   ({ one }) => ({
     user: one(users, {
-      fields: [user_achievement_progress.userId],
+      fields: [user_daily_mission_progress.userId],
       references: [users.id],
     }),
-    achievement: one(achievement, {
-      fields: [user_achievement_progress.achievementId],
-      references: [achievement.id],
+    dailyMission: one(daily_mission, {
+      fields: [user_daily_mission_progress.dailyMissionId],
+      references: [daily_mission.id],
     }),
   })
 );

@@ -32,14 +32,14 @@ export default function FeatureLayout({
 }>) {
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <body className="overflow-hidden">
-        <Image
+      <body className="bg-green-400">
+        {/* <Image
           src="/images/bg.jpg"
           alt="Background"
           fill
           className="object-cover z-[-1] blur-sm"
           // quality={100}
-        />
+        /> */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -48,8 +48,8 @@ export default function FeatureLayout({
         >
           <div>
             {children}
+            <BottomNav />
           </div>
-          <BottomNav />
         </ThemeProvider>
       </body>
     </html>

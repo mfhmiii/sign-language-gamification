@@ -7,6 +7,7 @@ import { getUserProfile } from "@/utils/supabase/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
 import QuoteCard from "@/components/quote-card";
+import { Lock, CheckCircle } from "lucide-react";
 
 interface QuizProgress {
   is_completed: boolean;
@@ -82,10 +83,10 @@ export default async function QuizPage() {
       };
     });
 
-    // Find current level or next available level
-    const currentOrNextLevel =
-      levelProgress?.find((level) => level.percentage < 100) ||
-      levelProgress?.[0];
+    // Find previous level for each level
+    const getPreviousLevel = (currentLevel: LevelData) => {
+      return levels?.find((l: LevelData) => l.order === currentLevel.order - 1);
+    };
 
     return (
       <main className="bg-green-400 xl:mx-36 md:mx-14">
@@ -93,57 +94,95 @@ export default async function QuizPage() {
           <h1 className="text-2xl font-bold">
             Halo, {user.username || "User"}...
           </h1>
-          <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
+          <h2 className="text-3xl font-bold text-primary">
+            Selamat Belajar
+          </h2>
         </div>
 
         <StatsCard
           points={user.points || 0}
           ranking={userRank?.rank || 0}
           level={Math.floor((user.xp || 0) / 1000)}
-          className="md:mx-12 mx-4"
+          className="mx-4"
         />
 
-        <div className="bg-white rounded-t-2xl pt-6 mt-6 h-screen">
+        <div className="bg-white rounded-t-2xl pt-6 mt-6 min-h-screen pb-16">
           <QuoteCard
             quote={quotes?.description || ""}
             author={quotes?.author || ""}
             className="m-6 md:mx-12 mx-4"
           />
-          <hr className="bg-slate-100 h-2"/>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-6 md:mx-12 mx-4">
-            {currentOrNextLevel && (
-              <Link href={`/quiz/${currentOrNextLevel.id}`}>
-                <Card className="p-6 hover:bg-accent transition-colors bg-green-400">
-                  <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                      <h3 className="text-2xl font-semibold">
-                        Level {currentOrNextLevel.order}
-                      </h3>
-                      <p className="text-lg text-muted-foreground">
-                        {currentOrNextLevel.name}
-                      </p>
-                    </div>
-                    <CircularProgress
-                      percentage={currentOrNextLevel.percentage}
-                      size={120}
-                      label="Complete"
-                    />
-                  </div>
-                </Card>
-              </Link>
-            )}
-            <Link href="/dictionary">
-              <Card className="p-6 hover:bg-accent transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold">Kamus</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Mulai Belajar
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
+          <hr className="bg-slate-100 h-2" />
+          <div className="bg-white rounded-xl m-6 md:m-12 shadow-sm">
+            <h3 className="text-xl font-semibold mb-4">
+              Pilih Level Belajar !
+            </h3>
+            <div className="grid grid-cols-1 gap-4">
+              {levelProgress?.map((level) => {
+                const previousLevel = getPreviousLevel(level);
+                const isLocked =
+                  level.order > 1 &&
+                  !previousLevel?.user_quiz_progress?.some(
+                    (p: { is_completed: boolean }) => p.is_completed
+                  );
+                const isCompleted = level.percentage === 100;
+
+                return (
+                  <Link
+                    key={level.order}
+                    href={isLocked || isCompleted ? "#" : `/quiz/${level.order}`}
+                    className={
+                      isLocked || isCompleted ? "cursor-not-allowed" : ""
+                    }
+                  >
+                    <Card
+                      className={`p-4 sm:p-6 transition-colors hover:opacity-90 ${
+                        isLocked
+                          ? "bg-muted"
+                          : isCompleted
+                            ? "bg-green-200"
+                            : "bg-[#D1F2D9]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="space-y-1 min-w-0">
+                          <h4 className="text-xl sm:text-2xl font-bold truncate">
+                            Level {level.order}
+                          </h4>
+                          <div
+                            className={`text-base sm:text-lg font-medium rounded-full px-3 sm:px-4 py-0.5 sm:py-1 inline-block truncate max-w-full ${
+                              isLocked
+                                ? "bg-muted-foreground/20"
+                                : "bg-yellow-200"
+                            }`}
+                          >
+                            {level.name}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          {isLocked ? (
+                            <div className="text-muted-foreground">
+                              <Lock className="w-6 h-6 sm:w-8 sm:h-8" />
+                            </div>
+                          ) : isCompleted ? (
+                            <div className="text-green-500">
+                              <CheckCircle className="w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]" />
+                            </div>
+                          ) : (
+                            <div className="w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]">
+                              <CircularProgress
+                                percentage={level.percentage}
+                                size="100%"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </main>

@@ -1,30 +1,34 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Target, Trophy, User, RefreshCw } from "lucide-react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, Target, Trophy, User, BookOpen } from "lucide-react";
 
 export function BottomNav() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const navItems = [
     { name: "Beranda", href: "/home", icon: Home },
     { name: "Misi", href: "/mission", icon: Target },
     // Special middle button
-    { name: "Quiz", href: "/quiz", icon: RefreshCw, special: true },
+    { name: "Kamus", href: "/dictionary", icon: BookOpen, special: true },
     { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { name: "Profil", href: "/profile/get", icon: User },
-  ]
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-background border-t border-foreground/10 p-2">
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map(({ name, href, icon: Icon, special }) => {
-          const isActive = pathname === href
+          const isActive = pathname === href;
 
           if (special) {
             return (
-              <Link key={name} href={href} className="flex flex-col items-center group">
+              <Link
+                key={name}
+                href={href}
+                className="flex flex-col items-center group"
+              >
                 <div
                   className={`
                   ${isActive ? "bg-yellow-500" : "bg-primary"} 
@@ -48,7 +52,7 @@ export function BottomNav() {
                   {name}
                 </span>
               </Link>
-            )
+            );
           }
 
           return (
@@ -76,10 +80,9 @@ export function BottomNav() {
                 {name}
               </span>
             </Link>
-          )
+          );
         })}
       </div>
     </nav>
-  )
+  );
 }
-

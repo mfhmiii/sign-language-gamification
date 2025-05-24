@@ -141,47 +141,6 @@ export const signUpAction = async (formData: FormData) => {
     }
   }
 
-  // Fetch all achievements
-  const { data: achievements, error: achievementsError } = await supabase
-    .from("achievement")
-    .select("*");
-
-  if (achievementsError) {
-    console.error("Achievements fetch error:", achievementsError);
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Failed to setup achievement progress"
-    );
-  }
-
-  // Create and insert achievement progress records if there are achievements
-  if (achievements && achievements.length > 0) {
-    const achievementProgressRecords = achievements.map((achievement) => ({
-      id: crypto.randomUUID(),
-      user_id: userId,
-      achievement_id: achievement.id,
-      progress_point: 0,
-      last_completed_at: null,
-    }));
-
-    const { error: achievementProgressError } = await supabase
-      .from("user_achievement_progress")
-      .insert(achievementProgressRecords);
-
-    if (achievementProgressError) {
-      console.error(
-        "Achievement progress creation error:",
-        achievementProgressError
-      );
-      return encodedRedirect(
-        "error",
-        "/sign-up",
-        "Failed to setup achievement progress"
-      );
-    }
-  }
-
   // Fetch all quiz levels
   const { data: levels, error: levelsError } = await supabase
     .from("quiz_level")
@@ -196,28 +155,108 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  // Create and insert level streak records if there are levels
-  if (levels && levels.length > 0) {
-    const levelStreakRecords = levels.map((level) => ({
+  // Fetch all daily missions
+  const { data: dailyMissions, error: dailyMissionsError } = await supabase
+    .from("daily_mission")
+    .select("*");
+
+  if (dailyMissionsError) {
+    console.error("Daily missions fetch error:", dailyMissionsError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup daily mission progress"
+    );
+  }
+
+  // Create and insert daily mission progress records if there are daily missions
+  if (dailyMissions && dailyMissions.length > 0) {
+    const dailyMissionProgressRecords = dailyMissions.map((dailyMission) => ({
       id: crypto.randomUUID(),
       user_id: userId,
-      level_id: level.id,
-      current_streak: 0,
-      last_question_id: null,
+      daily_mission_id: dailyMission.id,
+      progress_point: 0,
+      completed_at: null,
     }));
 
-    const { error: streakError } = await supabase
-      .from("level_streaks")
-      .insert(levelStreakRecords);
+    const { error: dailyMissionProgressError } = await supabase
+      .from("user_daily_mission_progress")
+      .insert(dailyMissionProgressRecords);
 
-    if (streakError) {
-      console.error("Level streak creation error:", streakError);
+    if (dailyMissionProgressError) {
+      console.error(
+        "Daily mission progress creation error:",
+        dailyMissionProgressError
+      );
       return encodedRedirect(
         "error",
         "/sign-up",
-        "Failed to setup level streaks"
+        "Failed to setup daily mission progress"
       );
     }
+  }
+
+  // Fetch all dictionary entries
+  const { data: dictionaryEntries, error: dictionaryError } = await supabase
+    .from("dictionary")
+    .select("id");
+
+  if (dictionaryError) {
+    console.error("Dictionary fetch error:", dictionaryError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to setup dictionary progress"
+    );
+  }
+
+  // Create and insert dictionary progress records if there are entries
+  if (dictionaryEntries && dictionaryEntries.length > 0) {
+    const dictionaryProgressRecords = dictionaryEntries.map((entry) => ({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      dictionary_id: entry.id,
+      progress_point: 0,
+      last_reviewed_at: null,
+    }));
+
+    const { error: dictionaryProgressError } = await supabase
+      .from("user_dictionary_progress")
+      .insert(dictionaryProgressRecords);
+
+    if (dictionaryProgressError) {
+      console.error(
+        "Dictionary progress creation error:",
+        dictionaryProgressError
+      );
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Failed to setup dictionary progress"
+      );
+    }
+  }
+
+  // Initialize login streak with yesterday's date
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const { error: loginStreakError } = await supabase
+    .from("login_streaks")
+    .insert({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      current_streak: 0,
+      last_login_date: yesterday.toISOString(),
+    });
+
+  if (loginStreakError) {
+    console.error("Login streak initialization error:", loginStreakError);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Failed to initialize login streak"
+    );
   }
 
   return redirect("/home");

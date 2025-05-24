@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useCallback } from "react";
+import { updateBadgesOnLevelCompletion } from "@/utils/quizAlgorithm";
+import Image from "next/image";
 
 interface Level {
   id: string;
@@ -27,6 +29,7 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
   const [loading, setLoading] = useState(true);
   const [rewardsGiven, setRewardsGiven] = useState(false);
   const [rewards, setRewards] = useState({ coins: 0, xp: 0 });
+  const [badgeImage, setBadgeImage] = useState<string | null>(null);
 
   // Calculate rewards based on level order
   const calculateRewards = useCallback((levelOrder: number) => {
@@ -49,7 +52,7 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
         // Get current user stats
         const { data: currentStats, error: statsError } = await supabase
           .from("users")
-          .select("points, xp")
+          .select("points, xp, badges1, badges2, badges3")
           .eq("id", userId)
           .single();
 
@@ -68,6 +71,15 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
 
         setRewards({ coins, xp });
         setRewardsGiven(true);
+
+        // Determine badge image based on user's badge status
+        if (currentStats?.badges1) {
+          setBadgeImage("/images/beginner.svg");
+        } else if (currentStats?.badges2) {
+          setBadgeImage("/images/intermediate.svg");
+        } else if (currentStats?.badges3) {
+          setBadgeImage("/images/expert.svg");
+        }
       } catch (error) {
         console.error("Error updating user stats:", error);
       }
@@ -100,6 +112,8 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
           // Only give rewards if they haven't been given yet
           if (!rewardsGiven) {
             await updateUserStats(user.id, levelData.order);
+            // Update badges when level is completed - use levelId, not levelData.order
+            await updateBadgesOnLevelCompletion(user.id, levelId);
           }
         }
       } catch (error) {
@@ -139,39 +153,43 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
 
         {/* Content */}
         <div className="text-center space-y-6">
-          <div className="p-6 bg-green-50 rounded-lg">
-            <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
-            <h2 className="text-xl font-semibold mb-2">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            {badgeImage ? (
+              <Image
+                src={badgeImage}
+                alt="Badge Image"
+                width={48}
+                height={48}
+                className="mx-auto mb-4 w-40 h-40"
+              />
+            ) : (
+              <p>No badge earned yet.</p>
+            )}
+            <h2 className="text-xl font-semibold mb-2 text-center">
               Selamat! Level Selesai!
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-center text-gray-600">
               Kamu telah menyelesaikan semua soal dengan benar.
             </p>
-          </div>
-
-          {/* Rewards */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Rewards yang kamu dapatkan:</h3>
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-4 mt-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-yellow-500">
                   {rewards.coins}
                 </p>
-                <p className="text-sm text-muted-foreground">Coins</p>
+                <p className="text-sm text-gray-600">Coins</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-500">{rewards.xp}</p>
-                <p className="text-sm text-muted-foreground">XP</p>
+                <p className="text-sm text-gray-600">EXP</p>
               </div>
             </div>
+            <Button
+              className="w-full mt-6 bg-yellow-500 hover:bg-yellow-600"
+              onClick={() => router.push("/home")}
+            >
+              Bagikan
+            </Button>
           </div>
-
-          <Button
-            className="w-full bg-green-500 hover:bg-green-600"
-            onClick={() => router.push("/home")}
-          >
-            Kembali ke Beranda
-          </Button>
         </div>
       </div>
     </main>

@@ -1,537 +1,180 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect, useMemo } from "react";
-import QuizQuestion from "@/components/QuizQuestion";
 import { createClient } from "@/utils/supabase/client";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { updateQuizStreak } from "@/utils/streak";
+import { Card } from "@/components/ui/card";
+import { CircularProgress } from "@/components/circular-progress";
+import { Lock, CheckCircle, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StageIndicator } from "@/components/stage-indicator";
 
-interface UserProgress {
-  question_id: string;
-  user_id: string;
-  level_id: string;
-  is_completed: boolean;
+interface QuizPageClientProps {
+  levelId: string;
 }
 
-interface QuizProgress {
-  is_completed: boolean;
-  user_id: string;
-}
-
-interface QuizQuestion {
+interface Stage {
   id: string;
-  type: string;
-  level_id: string;
-  question_text: string;
-  video_url: string;
-  correct_answer: string;
-  options: { options: string[] } | string; // JSON structure or string
-  user_quiz_progress: QuizProgress[];
+  stage: number;
+  is_completed: boolean;
+  percentage?: number;
 }
 
-interface Level {
-  id: string;
-  name: string;
-}
-
-export default function QuizPageClient({ levelId }: { levelId: string }) {
+export default function QuizPageClient({ levelId }: QuizPageClientProps) {
   const router = useRouter();
   const supabase = createClient();
-  const [level, setLevel] = useState<Level | null>(null);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [stages, setStages] = useState<Stage[]>([]);
+  const [levelName, setLevelName] = useState("");
   const [loading, setLoading] = useState(true);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [totalQuestionsInLevel, setTotalQuestionsInLevel] = useState(0);
-  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(0);
-
-  async function loadData() {
-    try {
-      // Get current user
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/sign-in");
-        return;
-      }
-      setUser(currentUser);
-
-      // Fetch level details first
-      const { data: levelData, error: levelError } = await supabase
-        .from("quiz_level")
-        .select("*")
-        .eq("id", levelId)
-        .single();
-
-      if (levelError || !levelData) {
-        console.error("Level error:", levelError);
-        router.push("/home");
-        return;
-      }
-
-      setLevel(levelData);
-
-      // Get total questions in level
-      const { data: allQuestions } = await supabase
-        .from("quiz_questions")
-        .select("id")
-        .eq("level_id", levelId)
-        .order("id");
-
-      setTotalQuestionsInLevel(allQuestions?.length || 0);
-
-      // First, check if user has any progress in this level
-      const { data: progressData } = await supabase
-        .from("user_quiz_progress")
-        .select("question_id, is_completed")
-        .eq("user_id", currentUser.id)
-        .eq("level_id", levelId);
-
-      // If user has progress, only show uncompleted questions
-      if (progressData && progressData.length > 0) {
-        // Get all questions for this level
-        const { data: questionsData, error: questionsError } = await supabase
-          .from("quiz_questions")
-          .select("*")
-          .eq("level_id", levelId)
-          .order("id");
-
-        if (questionsError) {
-          console.error("Questions error:", questionsError);
-          return;
-        }
-
-        if (questionsData) {
-          // Get user progress for these questions
-          const { data: userProgress } = await supabase
-            .from("user_quiz_progress")
-            .select("*")
-            .eq("user_id", currentUser.id)
-            .eq("level_id", levelId);
-
-          // Combine questions with their progress
-          const questionsWithProgress = questionsData.map((question) => ({
-            ...question,
-            user_quiz_progress:
-              userProgress?.filter(
-                (p: UserProgress) => p.question_id === question.id
-              ) || [],
-          }));
-
-          // Filter to show only questions that are not completed
-          const uncompletedQuestions = questionsWithProgress.filter(
-            (q) =>
-              !q.user_quiz_progress.some((p: UserProgress) => p.is_completed)
-          );
-
-          // Find the index of the first uncompleted question in the full list
-          const firstUncompletedId = uncompletedQuestions[0]?.id;
-          const questionNumber =
-            questionsData.findIndex((q) => q.id === firstUncompletedId) + 1;
-          setCurrentQuestionNumber(questionNumber);
-
-          setQuestions(uncompletedQuestions);
-          setCurrentQuestionIndex(0);
-        }
-      } else {
-        // If no progress, show all questions
-        const { data: questionsData, error: questionsError } = await supabase
-          .from("quiz_questions")
-          .select("*")
-          .eq("level_id", levelId)
-          .order("id");
-
-        if (questionsError) {
-          console.error("Questions error:", questionsError);
-          return;
-        }
-
-        if (questionsData) {
-          // Add empty progress array to each question
-          const questionsWithProgress = questionsData.map((question) => ({
-            ...question,
-            user_quiz_progress: [],
-          }));
-
-          setQuestions(questionsWithProgress);
-          setCurrentQuestionIndex(0);
-          setCurrentQuestionNumber(1); // Start with first question
-        }
-      }
-    } catch (error) {
-      console.error("Error loading quiz data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, [levelId]);
+    async function fetchUserAndStages() {
+      try {
+        setLoading(true);
+
+        // Get current user
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/sign-in");
+          return;
+        }
+
+        setUserId(user.id);
+
+        // Get level info
+        const { data: levelData, error: levelError } = await supabase
+          .from("quiz_level")
+          .select("name, id")
+          .eq('"order"', levelId) // Use order field instead of id
+          .single();
+
+        if (levelError) {
+          throw new Error(`Error fetching level: ${levelError.message}`);
+        }
+
+        if (levelData) {
+          setLevelName(levelData.name);
+        }
+
+        // Get all questions for this level with their stages
+        const { data: questions, error: questionsError } = await supabase
+          .from("quiz_questions")
+          .select("id, stage")
+          .eq("level_id", levelData.id) // Use the actual UUID from levelData
+          .order("stage", { ascending: true });
+
+        if (questionsError) {
+          throw new Error(
+            `Error fetching questions: ${questionsError.message}`
+          );
+        }
+
+        // Get user progress for this level
+        const { data: progress, error: progressError } = await supabase
+          .from("user_quiz_progress")
+          .select("question_id, is_completed")
+          .eq("user_id", user.id)
+          .eq("level_id", levelData.id); // Use the actual UUID from levelData
+
+        if (progressError) {
+          throw new Error(`Error fetching progress: ${progressError.message}`);
+        }
+
+        // Group questions by stage
+        const stageMap = new Map();
+        questions?.forEach((question) => {
+          if (!stageMap.has(question.stage)) {
+            stageMap.set(question.stage, []);
+          }
+          stageMap.get(question.stage).push(question.id);
+        });
+
+        // Calculate completion for each stage
+        const stagesData: Stage[] = [];
+        stageMap.forEach((questionIds, stageNumber) => {
+          const stageProgress =
+            progress?.filter(
+              (p) => questionIds.includes(p.question_id) && p.is_completed
+            ) || [];
+          const completionPercentage =
+            questionIds.length > 0
+              ? (stageProgress.length / questionIds.length) * 100
+              : 0;
+
+          stagesData.push({
+            id: `${levelId}-${stageNumber}`,
+            stage: stageNumber,
+            is_completed: completionPercentage === 100,
+            percentage: Math.round(completionPercentage),
+          });
+        });
+
+        // Sort stages by stage number
+        stagesData.sort((a, b) => a.stage - b.stage);
+        setStages(stagesData);
+      } catch (err) {
+        console.error("Error:", err);
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserAndStages();
+  }, [levelId, router, supabase]);
+
+  // Function to determine if a stage is locked
+  const isStageLocked = (stageIndex: number) => {
+    if (stageIndex === 0) return false; // First stage is always unlocked
+    const previousStage = stages[stageIndex - 1];
+    return !previousStage?.is_completed;
+  };
+
+  const handleStageClick = (stage: Stage, index: number) => {
+    if (isStageLocked(index)) return; // Don't navigate if stage is locked
+    if (stage.is_completed) {
+      // Maybe show a dialog asking if they want to retry
+      // For now, just navigate to the stage
+    }
+    router.push(`/quiz/${levelId}/${stage.stage}`);
+  };
 
   if (loading) {
     return (
-      <div className="container mx-2 py-8">
-        <div className="flex items-center justify-center min-h-[200px]">
-          Loading...
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Get current question
-  const currentQuestion = questions[currentQuestionIndex];
-
-  const handleNextQuestion = async () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      // Move to next question
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setCurrentQuestionNumber((prev) => prev + 1);
-    } else {
-      // Check if all questions in the level are completed
-      const { data: allQuestions } = await supabase
-        .from("quiz_questions")
-        .select("*")
-        .eq("level_id", levelId);
-
-      const { data: userProgress } = await supabase
-        .from("user_quiz_progress")
-        .select("*")
-        .eq("user_id", user?.id)
-        .eq("level_id", levelId);
-
-      const hasUncompletedQuestions = allQuestions?.some(
-        (q) =>
-          !userProgress?.some(
-            (p: UserProgress) => p.question_id === q.id && p.is_completed
-          )
-      );
-
-      if (hasUncompletedQuestions) {
-        // If there are uncompleted questions, go to retry confirmation
-        router.push(`/quiz/${levelId}/retry-confirmation`);
-      } else {
-        // If all questions are completed, go to level-cleared
-        router.push(`/quiz/${levelId}/level-cleared`);
-      }
-    }
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen p-4">
+        <h2 className="text-xl font-bold text-red-500 mb-4">
+          Error Loading Level
+        </h2>
+        <p className="text-center mb-6">{error}</p>
+        <Button onClick={() => router.push("/home")}>Return to Home</Button>
+      </div>
+    );
+  }
 
   return (
-    <main className="bg-white max-w-lg mx-auto px-4 py-4">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between w-full shadow-sm">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8"
-            onClick={() => router.push("/home")}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-xl font-semibold">Quis</h1>
-          <div className="w-8 h-8" /> {/* Spacer for alignment */}
-        </div>
-
-        {/* Progress */}
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Soal {currentQuestionNumber}/{totalQuestionsInLevel}
-          </p>
-          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-yellow-400 h-full transition-all duration-300"
-              style={{
-                width: `${currentQuestionNumber * (100 / totalQuestionsInLevel)}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Current Question */}
-        {currentQuestion && (
-          <QuizQuestionCard
-            key={currentQuestion.id}
-            question={currentQuestion}
-            userId={user?.id}
-            onComplete={handleNextQuestion}
-          />
-        )}
+    <div className="bg-white min-h-screen pb-16 mt-10">
+      <div className="flex flex-col items-center justify-center px-6 py-12">
+        {/* Journey Path */}
+        <StageIndicator
+          stages={stages}
+          onStageClick={handleStageClick}
+          isStageLocked={isStageLocked}
+        />
       </div>
-    </main>
-  );
-}
-
-function QuizQuestionCard({
-  question,
-  userId,
-  onComplete,
-}: {
-  question: QuizQuestion;
-  userId: string;
-  onComplete: () => void;
-}) {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const supabase = createClient();
-
-  const questionOptions = useMemo(() => {
-    try {
-      const parsedOptions =
-        typeof question.options === "string"
-          ? JSON.parse(question.options)
-          : question.options;
-      return parsedOptions.options || [];
-    } catch (error) {
-      console.error("Error parsing options:", error);
-      return [];
-    }
-  }, [question.options]);
-
-  const handleSubmit = async () => {
-    if (!selectedAnswer) return;
-
-    const isCorrectAnswer = selectedAnswer === question.correct_answer;
-    setIsCorrect(isCorrectAnswer);
-    setIsSubmitted(true);
-
-    try {
-      // First, find the existing progress record
-      const { data: existingProgress } = await supabase
-        .from("user_quiz_progress")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("question_id", question.id)
-        .single();
-
-      if (existingProgress) {
-        // Update the existing record
-        const { error: updateError } = await supabase
-          .from("user_quiz_progress")
-          .update({ is_completed: isCorrectAnswer })
-          .eq("id", existingProgress.id);
-
-        if (updateError) {
-          console.error("Error updating progress:", updateError);
-          return;
-        }
-      } else {
-        // Create a new progress record
-        const { error: insertError } = await supabase
-          .from("user_quiz_progress")
-          .insert({
-            user_id: userId,
-            question_id: question.id,
-            level_id: question.level_id,
-            is_completed: isCorrectAnswer,
-          });
-
-        if (insertError) {
-          console.error("Error creating progress:", insertError);
-          return;
-        }
-      }
-
-      // Update mission progress if answer is correct
-      if (isCorrectAnswer) {
-        const { data: missionProgress, error: missionError } = await supabase
-          .from("user_mission_progress")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("mission_id", "550e8400-e29b-41d4-a716-446655440000")
-          .single();
-
-        if (missionError && missionError.code === "PGRST116") {
-          // If no progress exists, create new progress
-          const { error: createError } = await supabase
-            .from("user_mission_progress")
-            .insert({
-              user_id: userId,
-              mission_id: "550e8400-e29b-41d4-a716-446655440000",
-              progress_point: 1,
-              current_level: 1,
-              current_level_requirement: 5,
-            });
-
-          if (createError)
-            console.error("Error creating mission progress:", createError);
-        } else if (missionProgress) {
-          // If progress exists, increment progress_point
-          const { error: updateError } = await supabase
-            .from("user_mission_progress")
-            .update({ progress_point: missionProgress.progress_point + 1 })
-            .eq("id", missionProgress.id);
-
-          if (updateError)
-            console.error("Error updating mission progress:", updateError);
-        }
-
-        // Get the level order from the question's level_id
-        const { data: levelData, error: levelError } = await supabase
-          .from("quiz_level")
-          .select("order")
-          .eq("id", question.level_id)
-          .single();
-
-        if (levelError) {
-          console.error("Error getting level order:", levelError);
-          return;
-        }
-
-        // Update achievement progress based on the level order
-        let achievementId = "";
-        switch (levelData.order) {
-          case 1:
-            achievementId = "0cc95048-c100-4f6c-bf4c-3b2ec372cddb";
-            break;
-          case 2:
-            achievementId = "20775b28-295d-40a7-b403-8ac2046d5719";
-            break;
-          case 3:
-            achievementId = "946200c8-a676-4ffc-ab97-3015ddaa65af";
-            break;
-          default:
-            console.error("Invalid level order:", levelData.order);
-            return;
-        }
-
-        // Update achievement progress for the current level
-        const { data: achievementProgress, error: achievementError } =
-          await supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("achievement_id", achievementId)
-            .single();
-
-        if (achievementError && achievementError.code === "PGRST116") {
-          // If no achievement progress exists, create new progress
-          const { error: createError } = await supabase
-            .from("user_achievement_progress")
-            .insert({
-              user_id: userId,
-              achievement_id: achievementId,
-              progress_point: 1,
-            });
-
-          if (createError)
-            console.error("Error creating achievement progress:", createError);
-        } else if (achievementProgress) {
-          // If progress exists, increment progress_point
-          const { error: updateError } = await supabase
-            .from("user_achievement_progress")
-            .update({ progress_point: achievementProgress.progress_point + 1 })
-            .eq("id", achievementProgress.id);
-
-          if (updateError)
-            console.error("Error updating achievement progress:", updateError);
-        }
-      }
-
-      // Update quiz streak based on answer correctness
-      const streakResult = await updateQuizStreak(
-        userId,
-        question.level_id,
-        question.id,
-        isCorrectAnswer
-      );
-
-      if (streakResult) {
-        console.log(
-          `Current level streak: ${streakResult.currentStreak}, All-time longest: ${streakResult.longestQuizStreak}`
-        );
-      }
-
-      console.log("Progress and streak updated successfully");
-    } catch (error) {
-      console.error("Error in handleSubmit:", error);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Video */}
-      {question.video_url && (
-        <div className="aspect-video rounded-lg overflow-hidden bg-black">
-          <video
-            src={question.video_url}
-            controls
-            className="w-full h-full object-contain"
-          />
-        </div>
-      )}
-
-      {/* Question */}
-      <h2 className="text-lg font-medium text-center">
-        {question.question_text}
-      </h2>
-
-      {/* Options */}
-      <div className="grid gap-3">
-        {questionOptions.map((option: string) => (
-          <Button
-            key={option}
-            variant={
-              isSubmitted
-                ? option === question.correct_answer
-                  ? "default"
-                  : option === selectedAnswer
-                    ? "destructive"
-                    : "outline"
-                : option === selectedAnswer
-                  ? "secondary"
-                  : "outline"
-            }
-            className={`w-full p-4 h-auto text-center justify-center ${
-              isSubmitted && option === selectedAnswer
-                ? option === question.correct_answer
-                  ? "bg-green-100 hover:bg-green-100"
-                  : "bg-red-100 hover:bg-red-100"
-                : ""
-            }`}
-            onClick={() => !isSubmitted && setSelectedAnswer(option)}
-            disabled={isSubmitted}
-          >
-            {option}
-          </Button>
-        ))}
-      </div>
-
-      {/* Result and Next Button */}
-      {isSubmitted ? (
-        <div className="space-y-4">
-          {isCorrect ? (
-            <div className="flex items-center justify-center gap-2 text-green-600">
-              <CheckCircle2 className="w-5 h-5" />
-              <span>Benar!</span>
-            </div>
-          ) : (
-            <p className="text-center text-red-600">
-              Maaf, Jawaban kamu salah. Coba lagi ya!
-            </p>
-          )}
-          <Button
-            className="w-full bg-green-500 hover:bg-green-600"
-            onClick={onComplete}
-          >
-            Lanjutkan
-          </Button>
-        </div>
-      ) : (
-        <Button
-          className="w-full"
-          onClick={handleSubmit}
-          disabled={!selectedAnswer}
-        >
-          Periksa Jawaban
-        </Button>
-      )}
     </div>
   );
 }

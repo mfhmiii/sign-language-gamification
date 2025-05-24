@@ -18,7 +18,7 @@ interface UserData {
   badges1: boolean;
   badges2: boolean;
   badges3: boolean;
-  longest_quiz_streak: number;
+  current_streak?: number;
 }
 
 interface Mission {
@@ -33,6 +33,7 @@ interface MissionProgress {
 }
 
 export default function UserProfile() {
+  // Remove achievement-related code
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,77 +51,50 @@ export default function UserProfile() {
         } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Get user data and achievement progress
-        const [
-          { data: userData, error },
-          { data: beginnerProgress },
-          { data: intermediateProgress },
-          { data: expertProgress },
-          { data: missionsData },
-          { data: missionProgressData },
-        ] = await Promise.all([
-          supabase
-            .from("users")
-            .select(
-              "email, username, profile_photo, points, xp, badges1, badges2, badges3, longest_quiz_streak"
-            )
-            .eq("id", user.id)
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("achievement_id", "0cc95048-c100-4f6c-bf4c-3b2ec372cddb")
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("achievement_id", "20775b28-295d-40a7-b403-8ac2046d5719")
-            .single(),
-          supabase
-            .from("user_achievement_progress")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("achievement_id", "946200c8-a676-4ffc-ab97-3015ddaa65af")
-            .single(),
-          supabase.from("mission").select("id, name, badge_reward"),
-          supabase
-            .from("user_mission_progress")
-            .select("mission_id, current_level")
-            .eq("user_id", user.id),
-        ]);
+        // Get user data
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select(
+            "email, username, profile_photo, points, xp, badges1, badges2, badges3"
+          )
+          .eq("id", user.id)
+          .single();
 
         if (error) throw error;
         if (userData) {
-          // Update badges if achievements are completed
-          const updates = {
-            badges1: beginnerProgress?.last_completed_at
-              ? true
-              : userData.badges1,
-            badges2: intermediateProgress?.last_completed_at
-              ? true
-              : userData.badges2,
-            badges3: expertProgress?.last_completed_at
-              ? true
-              : userData.badges3,
-          };
-
-          if (updates.badges1 || updates.badges2 || updates.badges3) {
-            await supabase.from("users").update(updates).eq("id", user.id);
-
-            Object.assign(userData, updates);
-          }
           setUserData(userData);
         }
 
-        if (missionsData) {
-          setMissions(missionsData);
+        // Fetch current streak from login_streak table
+        const { data: streakData, error: streakError } = await supabase
+          .from("login_streaks")
+          .select("current_streak")
+          .eq("user_id", user.id)
+          .single();
+
+        if (streakError) throw streakError;
+        if (streakData) {
+          setUserData((prev) => {
+            if (!prev) return prev; 
+            return {
+              ...prev,
+              current_streak: streakData.current_streak,
+            };
+          });
         }
 
-        if (missionProgressData) {
-          setMissionProgress(missionProgressData);
-        }
+        // Get missions and mission progress
+        const [{ data: missionsData }, { data: missionProgressData }] =
+          await Promise.all([
+            supabase.from("mission").select("id, name, badge_reward"),
+            supabase
+              .from("user_mission_progress")
+              .select("mission_id, current_level")
+              .eq("user_id", user.id),
+          ]);
+
+        if (missionsData) setMissions(missionsData);
+        if (missionProgressData) setMissionProgress(missionProgressData);
 
         // Get user rank
         const rankData = await getUserRank(user.id);
@@ -161,7 +135,7 @@ export default function UserProfile() {
   const badgeInfo = userRank ? getBadgeInfo(userRank) : null;
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+    <div className="bg-white px-4 pb-20 pt-4 sm:pb-16 rounded-lg shadow-sm xl:mx-36 md:mx-14">
       {/* Profile Header */}
       <div className="flex flex-row items-center gap-4 justify-between mb-6">
         <div className="flex flex-row items-center text-left">
@@ -215,10 +189,8 @@ export default function UserProfile() {
             <Flame className="text-red-500" size={24} />
           </div>
           <div>
-            <div className="text-2xl font-bold">
-              {userData.longest_quiz_streak}
-            </div>
-            <div className="text-gray-600 text-sm">Streak</div>
+            <div className="text-2xl font-bold">{userData.current_streak}</div>
+            <div className="text-gray-600 text-sm">Login Streak</div>
           </div>
         </div>
         <div className="bg-green-300 p-4 rounded-lg flex items-center">
@@ -234,31 +206,33 @@ export default function UserProfile() {
 
       {/* Lencana Section */}
       <div className="mb-6">
-        <h3 className="text-center text-green-400 text-xl mb-2 font-bold">Lencana</h3>
+        <h3 className="text-center text-green-400 text-xl mb-2 font-bold">
+          Lencana
+        </h3>
         <div className="border-b-2 border-green-200 mb-4"></div>
 
-        <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">Level Materi</h4>
+        <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">
+          Level Materi
+        </h4>
         <div className="flex sm:gap-8 justify-around">
           {/* Beginner Badge */}
           <div className="flex flex-col items-center">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-              <div
-                className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center"
-              >
-                {userData.badges1 ? (
-                  <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
-                    <Image
-                      src="/images/beginner.svg"
-                      alt="Beginner Badge"
-                      width={60}
-                      height={60}
-                      className="text-red-500 md:w-20"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400 items-center" size={40} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges1 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/beginner.svg"
+                    alt="Beginner Badge"
+                    width={60}
+                    height={60}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
+            </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
               Beginner
@@ -268,23 +242,21 @@ export default function UserProfile() {
           {/* Intermediate Badge */}
           <div className="flex flex-col items-center">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-              <div
-                className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center"
-              >
-                {userData.badges2 ? (
-                  <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
-                    <Image
-                      src="/images/intermediate.svg"
-                      alt="Intermediate Badge"
-                      width={50}
-                      height={50}
-                      className="text-red-500 md:w-20"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400 items-center" size={40} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges2 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/intermediate.svg"
+                    alt="Intermediate Badge"
+                    width={50}
+                    height={50}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
+            </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
               Intermediet
@@ -294,23 +266,21 @@ export default function UserProfile() {
           {/* Expert Badge */}
           <div className="flex flex-col items-center">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-              <div
-                className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center"
-              >
-                {userData.badges3 ? (
-                  <div className="bg-yellow-300 m-1 items-center absolute inset-0 clip-hexagon">
-                    <Image
-                      src="/images/expert.svg"
-                      alt="Expert Badge"
-                      width={50}
-                      height={50}
-                      className="text-red-500 md:w-20"
-                    />
-                  </div>
-                ) : (
-                  <Lock className="text-gray-400 items-center" size={40} />
-                )}
-              </div>
+            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges3 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Image
+                    src="/images/expert.svg"
+                    alt="Expert Badge"
+                    width={50}
+                    height={50}
+                    className="text-red-500 md:w-20"
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
+            </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
               Expert
@@ -321,7 +291,9 @@ export default function UserProfile() {
 
       {/* Misi Section */}
       <div className="pb-10">
-        <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">Misi</h4>
+        <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">
+          Misi
+        </h4>
         <div className="flex sm:gap-1 justify-around">
           {missions.map((mission) => {
             const progress = missionProgress.find(

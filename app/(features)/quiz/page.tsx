@@ -82,7 +82,9 @@ export default async function QuizPage() {
               Halo, {user.username || "User"}...
             </h1> */}
             <h1 className="text-3xl font-bold text-primary">Ayo Main Game!</h1>
-            <h2 className="text-xl font-semibold text-primary">Selesaikan Quiz untuk mendapatkan Hadiah!</h2>
+            <h2 className="text-xl font-semibold text-primary">
+              Selesaikan Quiz untuk mendapatkan Hadiah!
+            </h2>
           </div>
 
           {/* <StatsCard
