@@ -9,6 +9,9 @@ import { MissionCard } from "./components/MissionCard";
 import { DailyMissionCard } from "./components/DailyMissionCard";
 import { RewardModal } from "./components/RewardModal";
 
+// Import the types to use for type checking
+import type { MissionProgress, DailyMissionProgress } from "./hooks/useMission";
+
 export default function MissionPage() {
   const { missions, dailyMissions, userProgress, handleClaim } = useMission();
   const [showModal, setShowModal] = useState(false);
@@ -64,31 +67,46 @@ export default function MissionPage() {
 
             <TabsContent value="daily">
               <div className="grid gap-4 p-4">
-                {dailyMissions.map((mission) => (
-                  <DailyMissionCard
-                    key={mission.id}
-                    mission={mission}
-                    progress={userProgress?.find(
-                      (p) => p.mission_id === mission.id
-                    )}
-                    onClaim={onMissionClaim}
-                  />
-                ))}
+                {dailyMissions.map((mission) => {
+                  // Find the correct progress for this daily mission
+                  const missionProgress = userProgress?.find(
+                    (p) => "daily_mission_id" in p && p.daily_mission_id === mission.id
+                  );
+                  
+                  return (
+                    <DailyMissionCard
+                      key={mission.id}
+                      mission={mission}
+                      progress={missionProgress as DailyMissionProgress}
+                      onClaim={onMissionClaim}
+                    />
+                  );
+                })}
               </div>
             </TabsContent>
 
             <TabsContent value="misi">
               <div className="grid gap-4 p-4">
-                {missions.map((mission) => (
-                  <MissionCard
-                    key={mission.id}
-                    mission={mission}
-                    progress={userProgress.find(
-                      (p) => p.mission_id === mission.id
-                    )}
-                    onClaim={onMissionClaim}
-                  />
-                ))}
+                {missions.map((mission) => {
+                  // Only find regular mission progress (not daily mission progress)
+                  const regularProgress = userProgress?.filter(
+                    (p) => !("daily_mission_id" in p) && "mission_id" in p
+                  ) as MissionProgress[];
+                  
+                  // Find the specific progress for this mission
+                  const missionProgress = regularProgress?.find(
+                    (p) => p.mission_id === mission.id
+                  );
+                  
+                  return (
+                    <MissionCard
+                      key={mission.id}
+                      mission={mission}
+                      progress={missionProgress}
+                      onClaim={onMissionClaim}
+                    />
+                  );
+                })}
               </div>
             </TabsContent>
           </Tabs>

@@ -38,7 +38,7 @@ export default function RetryConfirmationClient({
         const { data: levelData } = await supabase
           .from("quiz_level")
           .select("*")
-          .eq("id", levelId)
+          .eq("order", levelId)
           .single();
 
         if (levelData) {
@@ -85,22 +85,8 @@ export default function RetryConfirmationClient({
   }
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-4">
+    <main className="max-w-lg mx-auto px-4 md:py-10 py-4">
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8"
-            onClick={() => router.push("/home")}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-xl font-semibold">Level {level?.name}</h1>
-          <div className="w-8 h-8" /> {/* Spacer for alignment */}
-        </div>
-
         {/* Content */}
         <div className="text-center space-y-6">
           <div className="p-6 bg-yellow-50 rounded-lg">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Camera, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { updateDictionaryDiverMission } from "@/app/(features)/mission/actions";
 
 type DictionaryModalProps = {
   isOpen: boolean;
@@ -69,6 +70,9 @@ export default function DictionaryModal({
 
         if (insertError) throw insertError;
       }
+
+      // Update Dictionary Diver mission progress
+      await updateDictionaryDiverMission(user.id);
 
       // Close camera and modal after successful submission
       setIsCameraOpen(false);

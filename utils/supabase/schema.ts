@@ -165,6 +165,7 @@ export const daily_mission = pgTable("daily_mission", {
   description: varchar("description", { length: 500 }),
   xpReward: integer("xp_reward").notNull(),
   pointsReward: integer("points_reward").notNull(),
+  levelRequirement: integer("level_requirement").default(1), // Added level_requirement field
   resetTime: timestamp("reset_time").notNull(), // When the daily mission resets
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -185,6 +186,7 @@ export const user_daily_mission_progress = pgTable(
       .notNull()
       .references(() => daily_mission.id),
     progressPoint: integer("progress_point").default(0),
+    // Removed currentLevelRequirement field
     completedAt: timestamp("completed_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

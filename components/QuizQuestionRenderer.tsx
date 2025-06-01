@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import io from "socket.io-client";
 import { CheckCircle2, XCircle, Camera } from "lucide-react";
 import { updateQuizProgress } from "@/utils/quizAlgorithm";
+import { useGestureSocket } from "@/hooks/useGestureSocket";
 
 interface QuizQuestionRendererProps {
   question: {
@@ -123,6 +125,20 @@ export default function QuizQuestionRenderer({
           {question.question_text}
         </h2>
 
+        {/* Video */}
+        {question.video_url && (
+          <div className="aspect-video rounded-lg overflow-hidden bg-slate-100 mb-4 mt-2">
+            <video
+              src={question.video_url}
+              className="w-full h-full object-cover"
+              autoPlay
+              loop
+              muted
+              controls
+            />
+          </div>
+        )}
+
         {/* Options */}
         <div className="grid gap-3">
           {questionOptions.map((option: string) => (
@@ -158,33 +174,76 @@ export default function QuizQuestionRenderer({
   };
 
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [predictionText, setPredictionText] = useState("Menunggu prediksi...");
 
-  const handleOpenCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-      });
-      setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-      setIsCameraOpen(true);
-    } catch (error) {
-      console.error("Error accessing camera:", error);
+  // useEffect(() => {
+  //   let socket: any;
+  
+  //   if (isCameraOpen && videoRef.current) {
+  //     const connectAndStream = async () => {
+  //       socket = io("https://our-silences.online", {
+  //         transports: ["websocket"],
+  //         secure: true,
+  //       });
+  
+  //       const mediaStream = await navigator.mediaDevices.getUserMedia({
+  //         video: true,
+  //       });
+  //       setStream(mediaStream);
+  //       videoRef.current!.srcObject = mediaStream;
+  
+  //       const canvas = canvasRef.current;
+  //       const ctx = canvas?.getContext("2d");
+  
+  //       const sendFrame = () => {
+  //         if (videoRef.current && canvas && ctx) {
+  //           canvas.width = videoRef.current.videoWidth;
+  //           canvas.height = videoRef.current.videoHeight;
+  //           ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+  //           const imageData = canvas.toDataURL("image/jpeg");
+  //           socket.emit("frame", { image: imageData });
+  //         }
+  //       };
+  
+  //       const intervalId = setInterval(sendFrame, 100);
+  
+  //       socket.on("prediction", (data: { sentence: string }) => {
+  //         setPredictionText("📜 " + data.sentence);
+  //       });
+  
+  //       socket.on("disconnect", () => {
+  //         clearInterval(intervalId);
+  //       });
+  //     };
+  
+  //     connectAndStream();
+  //   }
+  
+  //   return () => {
+  //     socket?.disconnect();
+  //     if (stream) {
+  //       stream.getTracks().forEach((track) => track.stop());
+  //     }
+  //   };
+  // }, [isCameraOpen]);
+
+  const { stopCamera } = useGestureSocket(
+    isCameraOpen,
+    videoRef as React.RefObject<HTMLVideoElement>,
+    canvasRef as React.RefObject<HTMLCanvasElement>,
+    (sentence) => {
+      setPredictionText("📜 " + sentence);
     }
-  };
+  );
 
   const handleCloseCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
+    stopCamera(); // 🔥 now it stops everything
     setIsCameraOpen(false);
   };
-
-  const renderGestureToText = () => {
+  
+  function renderGestureToText() {
     return (
       <div className="relative">
         <div className="aspect-square xl:aspect-video rounded-lg overflow-hidden bg-slate-100 relative">
@@ -196,6 +255,9 @@ export default function QuizQuestionRenderer({
                 playsInline
                 className="w-full h-full object-cover"
               />
+              <canvas ref={canvasRef} style={{ display: "none" }} />
+  
+              {/* Optional guide video */}
               {question.gesture_video_url && (
                 <div className="absolute top-4 right-4 w-1/4 aspect-video rounded-lg overflow-hidden bg-black/50">
                   <video
@@ -207,6 +269,7 @@ export default function QuizQuestionRenderer({
                   />
                 </div>
               )}
+  
               <div className="absolute bottom-4 right-4 flex gap-2">
                 <Button
                   onClick={async () => {
@@ -228,11 +291,16 @@ export default function QuizQuestionRenderer({
                   Close Camera
                 </Button>
               </div>
+  
+              {/* Display prediction text */}
+              <div className="absolute top-4 left-4 bg-black/70 text-white text-sm p-2 rounded">
+                {predictionText}
+              </div>
             </>
           ) : (
             <div className="flex items-center justify-center h-full">
               <Button
-                onClick={handleOpenCamera}
+                onClick={() => setIsCameraOpen(true)}
                 className="bg-green-500 hover:bg-green-600 text-white rounded-full p-8"
               >
                 <div className="flex flex-col items-center gap-2">
@@ -243,14 +311,108 @@ export default function QuizQuestionRenderer({
             </div>
           )}
         </div>
-
-        {/* Question */}
+  
         <h2 className="text-lg font-medium text-center mt-4">
           {question.question_text}
         </h2>
       </div>
     );
-  };
+  }
+
+  // const [isCameraOpen, setIsCameraOpen] = useState(false);
+  // const [stream, setStream] = useState<MediaStream | null>(null);
+  // const videoRef = useRef<HTMLVideoElement>(null);
+
+  // const handleOpenCamera = async () => {
+  //   try {
+  //     const mediaStream = await navigator.mediaDevices.getUserMedia({
+  //       video: true,
+  //     });
+  //     setStream(mediaStream);
+  //     if (videoRef.current) {
+  //       videoRef.current.srcObject = mediaStream;
+  //     }
+  //     setIsCameraOpen(true);
+  //   } catch (error) {
+  //     console.error("Error accessing camera:", error);
+  //   }
+  // };
+
+  // const handleCloseCamera = () => {
+  //   if (stream) {
+  //     stream.getTracks().forEach((track) => track.stop());
+  //     setStream(null);
+  //   }
+  //   setIsCameraOpen(false);
+  // };
+
+  // const renderGestureToText = () => {
+  //   return (
+  //     <div className="relative">
+  //       <div className="aspect-square xl:aspect-video rounded-lg overflow-hidden bg-slate-100 relative">
+  //         {isCameraOpen ? (
+  //           <>
+  //             <video
+  //               ref={videoRef}
+  //               autoPlay
+  //               playsInline
+  //               className="w-full h-full object-cover"
+  //             />
+  //             {question.gesture_video_url && (
+  //               <div className="absolute top-4 right-4 w-1/4 aspect-video rounded-lg overflow-hidden bg-black/50">
+  //                 <video
+  //                   src={question.gesture_video_url}
+  //                   autoPlay
+  //                   loop
+  //                   muted
+  //                   className="w-full h-full object-contain opacity-70"
+  //                 />
+  //               </div>
+  //             )}
+  //             <div className="absolute bottom-4 right-4 flex gap-2">
+  //               <Button
+  //                 onClick={async () => {
+  //                   setIsCorrect(true);
+  //                   setIsSubmitted(true);
+  //                   await updateQuizProgress(
+  //                     userId,
+  //                     question.id,
+  //                     question.level_id,
+  //                     true
+  //                   );
+  //                 }}
+  //                 variant="secondary"
+  //                 className="bg-green-500 hover:bg-green-600 text-white"
+  //               >
+  //                 Test Complete
+  //               </Button>
+  //               <Button onClick={handleCloseCamera} variant="destructive">
+  //                 Close Camera
+  //               </Button>
+  //             </div>
+  //           </>
+  //         ) : (
+  //           <div className="flex items-center justify-center h-full">
+  //             <Button
+  //               onClick={handleOpenCamera}
+  //               className="bg-green-500 hover:bg-green-600 text-white rounded-full p-8"
+  //             >
+  //               <div className="flex flex-col items-center gap-2">
+  //                 <Camera className="w-8 h-8" />
+  //                 <span>Buka Kamera</span>
+  //               </div>
+  //             </Button>
+  //           </div>
+  //         )}
+  //       </div>
+
+  //       {/* Question */}
+  //       <h2 className="text-lg font-medium text-center mt-4">
+  //         {question.question_text}
+  //       </h2>
+  //     </div>
+  //   );
+  // };
 
   const renderMemoryMatch = () => {
     if (!question.memory_options || !question.correct_answer_pairs) {
@@ -284,11 +446,14 @@ export default function QuizQuestionRenderer({
         );
 
         if (isMatch) {
-          const newMatchedPairs = [...matchedPairs, firstCard, secondCard];
+          // Create new matched pairs with the correct structure
+          const newMatchedPairs = [...matchedPairs, 
+            { text: secondCard.text, videoUrl: firstCard.videoUrl }
+          ];
           setMatchedPairs(newMatchedPairs);
 
           // Only complete when all pairs are matched
-          const totalPairsCount = question.correct_answer_pairs.length * 2;
+          const totalPairsCount = question.correct_answer_pairs.length;
           if (newMatchedPairs.length === totalPairsCount) {
             setIsCorrect(true);
             setIsSubmitted(true);
@@ -336,7 +501,7 @@ export default function QuizQuestionRenderer({
                   <div
                     key={index}
                     onClick={() => handleCardClick(card)}
-                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 align-middle ${matchedPairs.some((pair) => pair.videoUrl === card.videoUrl) ? "bg-green-100" : wrongPair.find((pair) => pair.videoUrl === card.videoUrl) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-200 hover:border-slate-500"}`}
+                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 align-middle ${matchedPairs.find((pair) => pair.videoUrl === card.videoUrl) ? "bg-green-100" : wrongPair.find((pair) => pair.videoUrl === card.videoUrl) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-200 hover:border-slate-500"}`}
                   >
                     <video
                       src={card.videoUrl}
@@ -363,7 +528,7 @@ export default function QuizQuestionRenderer({
                   <div
                     key={index}
                     onClick={() => handleCardClick(card)}
-                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 border border-slate-200 flex items-center justify-center w-full h-full align-middle ${matchedPairs.some((pair) => pair.text === card.text) ? "bg-green-100" : wrongPair.find((pair) => pair.text === card.text) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-50"}`}
+                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 border border-slate-200 flex items-center justify-center w-full h-full align-middle ${matchedPairs.find((pair) => pair.text === card.text) ? "bg-green-100" : wrongPair.find((pair) => pair.text === card.text) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-50"}`}
                   >
                     {card.text}
                   </div>
@@ -374,7 +539,7 @@ export default function QuizQuestionRenderer({
         </div>
 
         <div className="text-center text-sm text-muted-foreground">
-          {matchedPairs.length / 2} of {totalPairs} pairs matched
+          {matchedPairs.length} of {totalPairs} pairs matched
         </div>
       </div>
     );

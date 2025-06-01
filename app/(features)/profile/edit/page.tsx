@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     async function loadUserData() {
@@ -121,6 +122,36 @@ export default function ProfilePage() {
     } else {
       router.push("/profile/view");
     }
+  };
+
+  // Logout confirmation modal
+  const LogoutConfirmationModal = () => {
+    if (!showLogoutModal) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+          <h2 className="text-xl font-bold mb-4">Konfirmasi Logout</h2>
+          <p className="mb-6">Apakah Anda yakin ingin keluar dari aplikasi?</p>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLogoutModal(false)} 
+              className="w-full"
+            >
+              Batal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => signOutAction()} 
+              className="w-full"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -243,12 +274,14 @@ export default function ProfilePage() {
             variant="outline"
             className="w-full text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
             type="button"
-            onClick={() => signOutAction()}
+            onClick={() => setShowLogoutModal(true)}
           >
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </div>
       </form>
+      
+      <LogoutConfirmationModal />
     </div>
   );
 }

@@ -27,7 +27,7 @@ export interface QuizQuestion {
 
 /**
  * Fetches quiz questions for a specific level
- * @param levelId - The ID of the level to fetch questions for
+ * @param levelOrder - The ID of the level to fetch questions for
  * @param userId - The ID of the current user
  * @param includeCompleted - Whether to include completed questions (default: false)
  * @returns Array of quiz questions ordered by the 'order' field
@@ -167,14 +167,9 @@ export async function fetchQuizQuestions(
       })
     );
 
-    // Filter out completed questions if needed
-    if (!includeCompleted) {
-      return processedQuestions.filter(
-        (q) => !q.user_quiz_progress?.some((p) => p.is_completed)
-      );
-    }
-
-    return processedQuestions;
+    // Always return all questions, sorted by order
+    // We'll handle filtering in the UI
+    return processedQuestions.sort((a, b) => a.order - b.order);
   } catch (error) {
     console.error("Error in fetchQuizQuestions:", error);
     return [];

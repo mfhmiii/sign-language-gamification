@@ -25,7 +25,7 @@ type DailyMission = {
   reset_time?: string;
 };
 
-type MissionProgress = {
+export type MissionProgress = {
   id: string;
   userId: string;
   mission_id: string;
@@ -36,22 +36,24 @@ type MissionProgress = {
   is_completed: boolean;
 };
 
-type DailyMissionProgress = {
+export type DailyMissionProgress = {
   id: string;
-  userId: string;
+  user_id: string;
   daily_mission_id: string;
   mission_id: string;
   progress_point: number;
-  current_level: number;
   current_level_requirement: number;
-  last_completed_at: string | null;
-  is_completed: boolean;
+  completed_at: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const useMission = () => {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [dailyMissions, setDailyMissions] = useState<DailyMission[]>([]);
-  const [userProgress, setUserProgress] = useState<(MissionProgress | DailyMissionProgress)[]>([]);
+  const [userProgress, setUserProgress] = useState<
+    (MissionProgress | DailyMissionProgress)[]
+  >([]);
   const [userStreak, setUserStreak] = useState(0);
   const supabase = createClient();
 
@@ -132,7 +134,7 @@ export const useMission = () => {
       if (streakMissionProgress) {
         await supabase
           .from("user_mission_progress")
-          .update({ progressPoint: userData.longest_quiz_streak })
+          .update({ progress_point: userData.longest_quiz_streak })
           .eq("id", streakMissionProgress.id);
       }
     }
@@ -145,17 +147,21 @@ export const useMission = () => {
     if (!user) return;
 
     // Check if it's a daily mission by checking for reset_time property
-    const isDailyMission = 'reset_time' in mission;
-    const progress = isDailyMission 
-      ? userProgress.find((p) => 'daily_mission_id' in p && p.daily_mission_id === mission.id)
-      : userProgress.find((p) => !('daily_mission_id' in p) && p.mission_id === mission.id);
+    const isDailyMission = "reset_time" in mission;
+    const progress = isDailyMission
+      ? userProgress.find(
+          (p) => "daily_mission_id" in p && p.daily_mission_id === mission.id
+        )
+      : userProgress.find(
+          (p) => !("daily_mission_id" in p) && p.mission_id === mission.id
+        );
 
     if (!progress) return null;
 
     // For daily missions, we only need to check if it's completed
     if (isDailyMission) {
       const dailyProgress = progress as DailyMissionProgress;
-      if (dailyProgress.is_completed) return null;
+      if (dailyProgress.completed_at !== null) return null;
 
       // Get current user stats
       const { data: currentStats, error: statsError } = await supabase
@@ -187,21 +193,23 @@ export const useMission = () => {
       const { error: progressUpdateError } = await supabase
         .from("user_daily_mission_progress")
         .update({
-          is_completed: true,
-          last_completed_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
         })
         .eq("id", dailyProgress.id);
 
       if (progressUpdateError) {
-        console.error("Error updating daily mission progress:", progressUpdateError);
+        console.error(
+          "Error updating daily mission progress:",
+          progressUpdateError
+        );
         return;
       }
 
       await fetchUserProgress();
-      return { 
-        mission, 
-        scaledPoints: mission.points_reward, 
-        scaledXP: mission.xp_reward 
+      return {
+        mission,
+        scaledPoints: mission.points_reward,
+        scaledXP: mission.xp_reward,
       };
     }
 
@@ -221,7 +229,8 @@ export const useMission = () => {
       }
 
       // Calculate scaled rewards based on current level
-      const currentLevelMultiplier = 1 + progress.current_level * 0.5; // 50% increase per level
+      const currentLevelMultiplier =
+        1 + progress.current_level_requirement * 0.5; // 50% increase per level
       const scaledPoints = Math.floor(
         mission.points_reward * currentLevelMultiplier
       );
@@ -242,7 +251,7 @@ export const useMission = () => {
       }
 
       // Calculate new requirements and rewards based on next level
-      const nextLevel = progress.current_level + 1;
+      const nextLevel = progress.current_level_requirement + 1;
       const levelMultiplier = 1 + (nextLevel - 1) * 1.5; // 50% increase per level
 
       // Update mission progress with scaled requirements
