@@ -8,6 +8,8 @@ import { createClient } from "@/utils/supabase/server";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
 import QuoteCard from "@/components/quote-card";
 import { Lock, CheckCircle } from "lucide-react";
+import { updateUserLevel } from "@/app/actions";
+import { updateWordWarriorMission } from "@/app/(features)/mission/actions";
 
 interface QuizProgress {
   is_completed: boolean;
@@ -30,6 +32,11 @@ export default async function QuizPage() {
     if (!user) {
       return redirect("/sign-in");
     }
+
+    // Update user level based on XP
+    await updateUserLevel(user.id);
+
+    await updateWordWarriorMission(user.id);
 
     // Get user's rank information
     const userRank = await getUserRank(user.id);
@@ -94,9 +101,7 @@ export default async function QuizPage() {
           <h1 className="text-2xl font-bold">
             Halo, {user.username || "User"}...
           </h1>
-          <h2 className="text-3xl font-bold text-primary">
-            Selamat Belajar
-          </h2>
+          <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
         </div>
 
         <StatsCard
@@ -130,7 +135,9 @@ export default async function QuizPage() {
                 return (
                   <Link
                     key={level.order}
-                    href={isLocked || isCompleted ? "#" : `/quiz/${level.order}`}
+                    href={
+                      isLocked || isCompleted ? "#" : `/quiz/${level.order}`
+                    }
                     className={
                       isLocked || isCompleted ? "cursor-not-allowed" : ""
                     }

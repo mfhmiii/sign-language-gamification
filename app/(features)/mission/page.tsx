@@ -2,12 +2,15 @@
 
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useMission } from "./hooks/useMission";
 import { MissionCard } from "./components/MissionCard";
 import { DailyMissionCard } from "./components/DailyMissionCard";
 import { RewardModal } from "./components/RewardModal";
+import { updateUserLevel } from "@/app/actions";
+import { updateLevelUpMission } from "./actions";
+import { createClient } from "@/utils/supabase/client";
 
 // Import the types to use for type checking
 import type { MissionProgress, DailyMissionProgress } from "./hooks/useMission";
@@ -20,6 +23,26 @@ export default function MissionPage() {
     scaledPoints?: number;
     scaledXP?: number;
   } | null>(null);
+
+  useEffect(() => {
+    const updateUserData = async () => {
+      try {
+        const {
+          data: { user },
+        } = await createClient().auth.getUser();
+        if (user) {
+          // Update user level based on XP
+          await updateUserLevel(user.id);
+          // Update the Level Up mission progress
+          await updateLevelUpMission(user.id);
+        }
+      } catch (error) {
+        console.error("Error updating user data:", error);
+      }
+    };
+
+    updateUserData();
+  }, []);
 
   const onMissionClaim = async (mission: any) => {
     const result = await handleClaim(mission);
@@ -70,9 +93,11 @@ export default function MissionPage() {
                 {dailyMissions.map((mission) => {
                   // Find the correct progress for this daily mission
                   const missionProgress = userProgress?.find(
-                    (p) => "daily_mission_id" in p && p.daily_mission_id === mission.id
+                    (p) =>
+                      "daily_mission_id" in p &&
+                      p.daily_mission_id === mission.id
                   );
-                  
+
                   return (
                     <DailyMissionCard
                       key={mission.id}
@@ -92,12 +117,12 @@ export default function MissionPage() {
                   const regularProgress = userProgress?.filter(
                     (p) => !("daily_mission_id" in p) && "mission_id" in p
                   ) as MissionProgress[];
-                  
+
                   // Find the specific progress for this mission
                   const missionProgress = regularProgress?.find(
                     (p) => p.mission_id === mission.id
                   );
-                  
+
                   return (
                     <MissionCard
                       key={mission.id}

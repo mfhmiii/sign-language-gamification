@@ -69,7 +69,7 @@ export default function QuizPageClient({
             console.log(
               "No level found or API error, redirecting to stage-cleared"
             );
-            router.push(`/quiz/${levelId}/stage-cleared`);
+            router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
             return;
           }
           router.push("/home");
@@ -78,7 +78,7 @@ export default function QuizPageClient({
 
         if (!levelData) {
           console.error("No level data found");
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -90,7 +90,7 @@ export default function QuizPageClient({
           progress = await getQuizProgress(levelId, currentUser.id);
         } catch (progressError) {
           console.error("Error getting quiz progress:", progressError);
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -104,13 +104,13 @@ export default function QuizPageClient({
           );
         } catch (questionsError) {
           console.error("Error fetching quiz questions:", questionsError);
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
         if (!quizQuestions || quizQuestions.length === 0) {
           console.log("No questions found, redirecting to stage-cleared");
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -131,7 +131,7 @@ export default function QuizPageClient({
           );
         } catch (stageError) {
           console.error("Error filtering questions by stage:", stageError);
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -139,7 +139,7 @@ export default function QuizPageClient({
           console.log(
             "No questions found for this stage, redirecting to stage-cleared"
           );
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -157,7 +157,7 @@ export default function QuizPageClient({
         // If all questions are completed, redirect to stage-cleared
         if (firstUncompletedIndex === -1) {
           console.log("All questions completed, redirecting to stage-cleared");
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
 
@@ -173,7 +173,7 @@ export default function QuizPageClient({
         setCurrentQuestionNumber(completedCount + 1);
       } catch (innerError) {
         console.error("Unexpected error in data loading:", innerError);
-        router.push(`/quiz/${levelId}/stage-cleared`);
+        router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
         return;
       }
     } catch (error) {
@@ -275,7 +275,7 @@ export default function QuizPageClient({
         // If this is the last question and it's now completed, redirect to stage-cleared
         if (updatedProgress.is_completed && currentQuestionIndex === questions.length - 1) {
           console.log(`DEBUG - Last question completed, navigating to stage-cleared`);
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
       }
@@ -326,7 +326,7 @@ export default function QuizPageClient({
       if (currentQuestion?.user_quiz_progress?.some((p: { is_completed: boolean }) => p.is_completed) && 
           nextUncompletedIndex === -1) {
         console.log(`DEBUG - Last question completed, navigating to stage-cleared`);
-        router.push(`/quiz/${levelId}/stage-cleared`);
+        router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
         return;
       }
 
@@ -334,7 +334,7 @@ export default function QuizPageClient({
         // Debug: Log navigation to stage-cleared
         console.log(`DEBUG - Navigating to stage-cleared, levelId: ${levelId}`);
         // If all questions in the stage are completed, go to stage-cleared
-        router.push(`/quiz/${levelId}/stage-cleared`);
+        router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
       } else {
         // Check if all questions in the level are completed
         const progress = await getQuizProgress(levelId, user?.id);
@@ -350,7 +350,7 @@ export default function QuizPageClient({
             `DEBUG - Navigating to stage-cleared from progress check`
           );
           // If all questions are completed or all questions in stage are completed, go to stage-cleared
-          router.push(`/quiz/${levelId}/stage-cleared`);
+          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
         } else {
           // Debug: Log navigation to retry-confirmation
           console.log(`DEBUG - Navigating to retry-confirmation`);

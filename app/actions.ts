@@ -50,6 +50,7 @@ export const signUpAction = async (formData: FormData) => {
     badges1: false,
     badges2: false,
     badges3: false,
+    badges4: false,
   });
 
   if (userError) {
@@ -412,3 +413,67 @@ export const getDictionaryWords = async (searchQuery?: string) => {
     return [];
   }
 };
+
+/**
+ * Updates the user's level based on their XP
+ * @param userId The user's ID
+ * @returns A boolean indicating whether the update was successful
+ */
+export async function updateUserLevel(userId: string): Promise<boolean> {
+  const supabase = await createClient();
+
+  try {
+    // Get the user's current XP and level
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("xp, level")
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+      return false;
+    }
+
+    // Calculate the correct level based on XP
+    const calculatedLevel = Math.floor((userData?.xp || 0) / 1000);
+
+    // Only update if the calculated level is different from the stored level
+    if (calculatedLevel !== userData?.level) {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ level: calculatedLevel })
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("Error updating user level:", updateError);
+        return false;
+      }
+
+      console.log(`Updated user ${userId} level to ${calculatedLevel}`);
+
+      // Import and call updateLevelUpMission after successful level update
+      try {
+        const { updateLevelUpMission } = await import(
+          "@/app/(features)/mission/actions"
+        );
+        const missionUpdated = await updateLevelUpMission(userId);
+
+        if (!missionUpdated) {
+          console.error("Failed to update Level Up mission");
+          // Continue execution even if mission update fails
+        } else {
+          console.log("Level Up mission updated successfully");
+        }
+      } catch (missionError) {
+        console.error("Error updating Level Up mission:", missionError);
+        // Continue execution even if mission update fails
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in updateUserLevel:", error);
+    return false;
+  }
+}

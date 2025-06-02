@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   badges1: boolean("badges1").default(false),
   badges2: boolean("badges2").default(false),
   badges3: boolean("badges3").default(false),
+  badges4: boolean("badges4").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -221,6 +222,7 @@ export const user_dictionary_progress = pgTable("user_dictionary_progress", {
     .references(() => dictionary.id),
   progressPoint: integer("progress_point").default(0),
   lastReviewedAt: timestamp("last_reviewed_at"),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

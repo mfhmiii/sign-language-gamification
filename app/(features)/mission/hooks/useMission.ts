@@ -119,25 +119,25 @@ export const useMission = () => {
     setUserProgress(combinedProgress);
 
     // Fetch initial streak value
-    const { data: userData } = await supabase
-      .from("users")
-      .select("longest_quiz_streak")
-      .eq("id", user.id)
-      .single();
+    // const { data: userData } = await supabase
+    //   .from("users")
+    //   .select("longest_quiz_streak")
+    //   .eq("id", user.id)
+    //   .single();
 
-    if (userData) {
-      setUserStreak(userData.longest_quiz_streak);
-      // Update streak mission progress if it exists
-      const streakMissionProgress = progressData?.find(
-        (p) => p.mission_id === "550e8400-e29b-41d4-a716-446655440001"
-      );
-      if (streakMissionProgress) {
-        await supabase
-          .from("user_mission_progress")
-          .update({ progress_point: userData.longest_quiz_streak })
-          .eq("id", streakMissionProgress.id);
-      }
-    }
+    // if (userData) {
+    //   setUserStreak(userData.longest_quiz_streak);
+    //   // Update streak mission progress if it exists
+    //   const streakMissionProgress = progressData?.find(
+    //     (p) => p.mission_id === "550e8400-e29b-41d4-a716-446655440001"
+    //   );
+    //   if (streakMissionProgress) {
+    //     await supabase
+    //       .from("user_mission_progress")
+    //       .update({ progress_point: userData.longest_quiz_streak })
+    //       .eq("id", streakMissionProgress.id);
+    //   }
+    // }
   };
 
   const handleClaim = async (mission: Mission | DailyMission) => {
@@ -251,7 +251,7 @@ export const useMission = () => {
       }
 
       // Calculate new requirements and rewards based on next level
-      const nextLevel = progress.current_level_requirement + 1;
+      const nextLevel = progress.current_level + 1;
       const levelMultiplier = 1 + (nextLevel - 1) * 1.5; // 50% increase per level
 
       // Update mission progress with scaled requirements
@@ -259,9 +259,10 @@ export const useMission = () => {
         .from("user_mission_progress")
         .update({
           current_level: nextLevel,
-          progress_point:
-            progress.progress_point -
-            Math.floor(mission.level_requirement * levelMultiplier),
+          // Remove the progress_point update to keep it unchanged
+          // progress_point:
+          //   progress.progress_point -
+          //   Math.floor(mission.level_requirement * levelMultiplier),
           last_completed_at: new Date().toISOString(),
         })
         .eq("id", progress.id);
@@ -277,57 +278,57 @@ export const useMission = () => {
     return null;
   };
 
-  const setupStreakSubscription = async () => {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return;
+  // const setupStreakSubscription = async () => {
+  //   const user = (await supabase.auth.getUser()).data.user;
+  //   if (!user) return;
 
-    supabase
-      .channel("streak-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "users",
-          filter: `id=eq.${user.id}`,
-        },
-        async (payload: any) => {
-          const newStreak = payload.new.longest_quiz_streak;
-          setUserStreak(newStreak);
+  //   supabase
+  //     .channel("streak-changes")
+  //     .on(
+  //       "postgres_changes",
+  //       {
+  //         event: "UPDATE",
+  //         schema: "public",
+  //         table: "users",
+  //         filter: `id=eq.${user.id}`,
+  //       },
+  //       async (payload: any) => {
+  //         const newStreak = payload.new.longest_quiz_streak;
+  //         setUserStreak(newStreak);
 
-          // Update streak mission progress
-          const streakMissionProgress = userProgress.find(
-            (p) => p.mission_id === "550e8400-e29b-41d4-a716-446655440001"
-          );
+  //         // Update streak mission progress
+  //         const streakMissionProgress = userProgress.find(
+  //           (p) => p.mission_id === "550e8400-e29b-41d4-a716-446655440001"
+  //         );
 
-          if (streakMissionProgress) {
-            await supabase
-              .from("user_mission_progress")
-              .update({ progress_point: newStreak })
-              .eq("id", streakMissionProgress.id);
+  //         if (streakMissionProgress) {
+  //           await supabase
+  //             .from("user_mission_progress")
+  //             .update({ progress_point: newStreak })
+  //             .eq("id", streakMissionProgress.id);
 
-            // Update local state
-            setUserProgress((prev) =>
-              prev.map((p) =>
-                p.id === streakMissionProgress.id
-                  ? { ...p, progress_point: newStreak }
-                  : p
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
+  //           // Update local state
+  //           setUserProgress((prev) =>
+  //             prev.map((p) =>
+  //               p.id === streakMissionProgress.id
+  //                 ? { ...p, progress_point: newStreak }
+  //                 : p
+  //             )
+  //           );
+  //         }
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.channel("streak-changes").unsubscribe();
-    };
-  };
+  //   return () => {
+  //     supabase.channel("streak-changes").unsubscribe();
+  //   };
+  // };
 
   useEffect(() => {
     fetchMissions();
     fetchUserProgress();
-    setupStreakSubscription();
+    // setupStreakSubscription();
   }, []);
 
   return {

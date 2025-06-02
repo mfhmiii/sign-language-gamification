@@ -8,6 +8,11 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback } from "react";
 import { updateBadgesOnLevelCompletion } from "@/utils/quizAlgorithm";
 import Image from "next/image";
+// Add this import at the top with other imports
+import {
+  updateLevelUpMission,
+  updateSignMasterMission,
+} from "@/app/(features)/mission/actions";
 
 interface Level {
   id: string;
@@ -52,7 +57,7 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
         // Get current user stats
         const { data: currentStats, error: statsError } = await supabase
           .from("users")
-          .select("points, xp, badges1, badges2, badges3")
+          .select("points, xp, badges1, badges2, badges3, badges4")
           .eq("id", userId)
           .single();
 
@@ -69,16 +74,39 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
 
         if (updateError) throw updateError;
 
+        // Call updateLevelUpMission to update the Level Up mission progress
+        try {
+          await updateLevelUpMission(userId);
+        } catch (missionError) {
+          console.error("Error updating Level Up mission:", missionError);
+          // Continue execution even if mission update fails
+        }
+
+        // Call updateSignMasterMission to check if the user has earned all badges
+        try {
+          const missionUpdated = await updateSignMasterMission(userId);
+          if (!missionUpdated) {
+            console.error("Failed to update Sign Master mission");
+          } else {
+            console.log("Sign Master mission updated successfully");
+          }
+        } catch (missionError) {
+          console.error("Error updating Sign Master mission:", missionError);
+          // Continue execution even if mission update fails
+        }
+
         setRewards({ coins, xp });
         setRewardsGiven(true);
 
         // Determine badge image based on user's badge status
         if (currentStats?.badges1) {
-          setBadgeImage("/images/beginner.svg");
+          setBadgeImage("/images/badges1.svg");
         } else if (currentStats?.badges2) {
-          setBadgeImage("/images/intermediate.svg");
+          setBadgeImage("/images/badges2.svg");
         } else if (currentStats?.badges3) {
-          setBadgeImage("/images/expert.svg");
+          setBadgeImage("/images/badges3.svg");
+        } else if (currentStats?.badges4) {
+          setBadgeImage("/images/badges4.svg");
         }
       } catch (error) {
         console.error("Error updating user stats:", error);
@@ -103,17 +131,51 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
         const { data: levelData } = await supabase
           .from("quiz_level")
           .select("*")
-          .eq("id", levelId)
+          .eq('"order"', parseInt(levelId))
           .single();
 
         if (levelData) {
           setLevel(levelData);
 
+          // Check if all questions in this level are completed
+          const { data: levelQuestions } = await supabase
+            .from("quiz_questions")
+            .select("id")
+            .eq("level_id", levelData.id);
+
+          if (!levelQuestions || levelQuestions.length === 0) {
+            console.error("No questions found for this level");
+            router.push("/home");
+            return;
+          }
+
+          const questionIds = levelQuestions.map((q) => q.id);
+
+          // Get user progress for these questions
+          const { data: userProgress } = await supabase
+            .from("user_quiz_progress")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("level_id", levelData.id)
+            .in("question_id", questionIds);
+
+          // Check if all questions in this level are completed
+          const allCompleted =
+            userProgress &&
+            userProgress.length === questionIds.length &&
+            userProgress.every((p) => p.is_completed);
+
+          if (!allCompleted) {
+            // If not all questions are completed, redirect back to the quiz level page
+            router.push(`/quiz/${levelId}`);
+            return;
+          }
+
           // Only give rewards if they haven't been given yet
           if (!rewardsGiven) {
             await updateUserStats(user.id, levelData.order);
-            // Update badges when level is completed - use levelId, not levelData.order
-            await updateBadgesOnLevelCompletion(user.id, levelId);
+            // Update badges when level is completed - use levelData.id, not levelId
+            await updateBadgesOnLevelCompletion(user.id, levelData.id);
           }
         }
       } catch (error) {

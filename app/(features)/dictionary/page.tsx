@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Mic } from "lucide-react";
+import { Search, Mic, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DictionaryModal from "@/components/dictionary-modal";
@@ -97,7 +97,7 @@ export default function Home() {
   };
 
   return (
-    <main className="pt-8 md:pt-10 min-h-screen flex flex-col">
+    <main className="py-8 md:py-10 min-h-screen flex flex-col">
       <div className="flex flex-col flex-1">
         <div className="flex items-center justify-between md:justify-around px-4 md:px-12">
           <div>
@@ -139,9 +139,9 @@ export default function Home() {
             >
               <Search size={20} className="text-gray-600" />
             </button>
-            <button className="bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors">
+            {/* <button className="bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors">
               <Mic size={20} className="text-gray-600" />
-            </button>
+            </button> */}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -155,7 +155,12 @@ export default function Home() {
                         className="bg-amber-400 rounded-xl p-4 text-white"
                     >
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xl font-bold">{item.value}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-bold">{item.value}</span>
+                                {item.progressPoint >= 5 && (
+                                    <CheckCircle className="text-green-500 h-5 w-5" />
+                                )}
+                            </div>
                             <button
                                 onClick={() => setSelectedWord(item)}
                                 className="bg-gray-100 text-gray-500 px-4 py-1 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
@@ -165,8 +170,8 @@ export default function Home() {
                         </div>
                         <div className="bg-white rounded-full h-2 overflow-hidden">
                             <div
-                                className="bg-amber-500 h-full transition-all duration-300"
-                                style={{ width: `${(item.progressPoint / 5) * 100}%` }}
+                                className={`h-full transition-all duration-300 ${item.progressPoint >= 5 ? 'bg-green-500' : 'bg-amber-500'}`}
+                                style={{ width: `${Math.min((item.progressPoint / 5) * 100, 100)}%` }}
                             />
                         </div>
                     </div>

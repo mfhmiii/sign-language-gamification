@@ -38,8 +38,7 @@ export function DailyMissionCard({
   onClaim,
 }: DailyMissionCardProps) {
   const progressPoint = progress?.progress_point || 0;
-  const progressLimit =
-    progress?.current_level_requirement || mission.level_requirement || 1;
+  const progressLimit = mission.level_requirement || 1;
   const isCompleted = progress?.completed_at !== null;
   const canClaim = progressPoint >= progressLimit && !isCompleted;
 

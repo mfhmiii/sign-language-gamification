@@ -49,7 +49,7 @@ export default function QuizPageClient({ levelId }: QuizPageClientProps) {
         const { data: levelData, error: levelError } = await supabase
           .from("quiz_level")
           .select("name, id")
-          .eq('"order"', levelId) // Use order field instead of id
+          .eq('"order"', parseInt(levelId))
           .single();
 
         if (levelError) {

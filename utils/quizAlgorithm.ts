@@ -1,5 +1,7 @@
+// The import at the top is correct
 import { createClient } from "@/utils/supabase/client";
 import { QuizType } from "@/utils/supabase/schema";
+import { updateSignMasterMission } from "@/app/(features)/mission/actions";
 
 export interface QuizQuestion {
   id: string;
@@ -404,7 +406,6 @@ export async function getQuizProgress(
     return { total: 0, completed: 0 };
   }
 }
-
 // Add logic to update badges based on level completion
 export async function updateBadgesOnLevelCompletion(
   userId: string,
@@ -458,14 +459,17 @@ export async function updateBadgesOnLevelCompletion(
       const levelName = levelData.name;
 
       switch (levelName) {
-        case "Huruf":
+        case "Kata Dasar":
           badgeField = "badges1";
           break;
-        case "Kata":
+        case "Activity":
           badgeField = "badges2";
           break;
-        case "Kalimat":
+        case "Keluarga":
           badgeField = "badges3";
+          break;
+        case "Sayur dan Buah":
+          badgeField = "badges4";
           break;
         default:
           console.error("Unknown levelName:", levelName);
@@ -480,6 +484,20 @@ export async function updateBadgesOnLevelCompletion(
 
       if (updateError) {
         console.error("Error updating badge:", updateError);
+      } else {
+        // Call updateSignMasterMission after successfully updating a badge
+        try {
+          // Make sure to await the function call and check its return value
+          const missionUpdated = await updateSignMasterMission(userId);
+          if (!missionUpdated) {
+            console.error("Failed to update Sign Master mission");
+          } else {
+            console.log("Sign Master mission updated successfully");
+          }
+        } catch (missionError) {
+          console.error("Error updating Sign Master mission:", missionError);
+          // Continue execution even if mission update fails
+        }
       }
     }
   } catch (error) {

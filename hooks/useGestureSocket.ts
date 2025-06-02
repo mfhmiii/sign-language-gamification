@@ -3,8 +3,8 @@ import io from "socket.io-client";
 
 export const useGestureSocket = (
   isCameraOpen: boolean,
-  videoRef: React.RefObject<HTMLVideoElement>,
-  canvasRef: React.RefObject<HTMLCanvasElement>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
   onPrediction: (sentence: string) => void
 ): { stopCamera: () => void } => {
   const streamRef = useRef<MediaStream | null>(null);

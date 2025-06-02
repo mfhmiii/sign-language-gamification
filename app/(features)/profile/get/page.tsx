@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
 import { useRouter } from "next/navigation";
 // import router from "next/router";
+import { updateUserLevel } from "@/app/actions";
 
 interface UserData {
   email: string;
@@ -51,6 +52,9 @@ export default function UserProfile() {
         } = await supabase.auth.getUser();
         if (!user) return;
 
+        // Update user level based on XP
+        await updateUserLevel(user.id);
+
         // Get user data
         const { data: userData, error } = await supabase
           .from("users")
@@ -75,7 +79,7 @@ export default function UserProfile() {
         if (streakError) throw streakError;
         if (streakData) {
           setUserData((prev) => {
-            if (!prev) return prev; 
+            if (!prev) return prev;
             return {
               ...prev,
               current_streak: streakData.current_streak,

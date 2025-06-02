@@ -32,7 +32,8 @@ export function MissionCard({ mission, progress, onClaim }: MissionCardProps) {
   const progressPoint = progress?.progress_point || 0;
   const progressLevel = progress?.current_level || 0;
   const progressLimit = progress?.current_level_requirement || 0;
-  const canClaim = progressPoint >= mission.level_requirement;
+  // const canClaim = progressPoint >= mission.level_requirement;
+  const canClaim = progressPoint >= progressLimit;
 
   return (
     <Card className="p-4">
