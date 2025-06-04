@@ -2,7 +2,7 @@
     "crons": [
       {
         "path": "/api/cron/reset-missions?secret=081219406583",
-        "schedule": "*/5 * * * *"
+        "schedule": "0 0 * * *"
       }
     ]
   }

@@ -36,7 +36,7 @@ export default async function QuizPage() {
     // Update user level based on XP
     await updateUserLevel(user.id);
 
-    await updateWordWarriorMission(user.id);
+    await updateWordWarriorMission(user.id, true); // Pass true to skip revalidation during rendering
 
     // Get user's rank information
     const userRank = await getUserRank(user.id);

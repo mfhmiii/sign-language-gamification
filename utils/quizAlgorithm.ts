@@ -1,7 +1,10 @@
 // The import at the top is correct
 import { createClient } from "@/utils/supabase/client";
 import { QuizType } from "@/utils/supabase/schema";
-import { updateSignMasterMission } from "@/app/(features)/mission/actions";
+import {
+  updateLoginStreakMission,
+  updateSignMasterMission,
+} from "@/app/(features)/mission/actions";
 
 export interface QuizQuestion {
   id: string;
@@ -303,6 +306,20 @@ export async function updateQuizProgress(
       }
     }
 
+    // Call updateLoginStreakMission function
+    try {
+      const missionUpdated = await updateLoginStreakMission(userId);
+      if (!missionUpdated) {
+        console.error("Failed to update Login Streak mission");
+      } else {
+        console.log("Login Streak mission updated successfully");
+      }
+    } catch (missionError) {
+      console.error("Error updating Login Streak mission:", missionError);
+      // Continue execution even if mission update fails
+    }
+
+    // Rest of the function remains unchanged
     // First, find the existing progress record
     const { data: existingProgress } = await supabase
       .from("user_quiz_progress")

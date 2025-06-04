@@ -457,7 +457,7 @@ export async function updateUserLevel(userId: string): Promise<boolean> {
         const { updateLevelUpMission } = await import(
           "@/app/(features)/mission/actions"
         );
-        const missionUpdated = await updateLevelUpMission(userId);
+        const missionUpdated = await updateLevelUpMission(userId, true); // Pass true to skip revalidation during rendering
 
         if (!missionUpdated) {
           console.error("Failed to update Level Up mission");

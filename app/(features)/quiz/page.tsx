@@ -32,7 +32,7 @@ export default async function QuizPage() {
     }
     
     // Update Word Warrior mission progress
-    await updateWordWarriorMission(user.id);
+    await updateWordWarriorMission(user.id, true); // Pass true to skip revalidation during rendering
 
     // Get user's rank information
     const userRank = await getUserRank(user.id);

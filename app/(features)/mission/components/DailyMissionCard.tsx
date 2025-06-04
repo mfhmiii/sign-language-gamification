@@ -43,7 +43,7 @@ export function DailyMissionCard({
   const canClaim = progressPoint >= progressLimit && !isCompleted;
 
   // Special icon for login streak mission
-  const isLoginStreakMission = mission.name === "Login Streak";
+  const isLoginStreakMission = mission.name === "Login Streak!";
   const missionIcon = isLoginStreakMission ? "🔥" : "📅";
 
   return (
@@ -56,7 +56,9 @@ export function DailyMissionCard({
         </div>
         <div className="flex-1">
           <h3 className="text-base font-medium">{mission.name}</h3>
-          <p className="text-sm text-gray-500">{mission.description}</p>
+          <p className="sm:text-xs text-sm text-gray-500">
+            {mission.description}
+          </p>
           <div className="mt-2">
             <div className="text-sm text-gray-600 pb-2">Daily Mission</div>
             {!canClaim ? (
@@ -65,7 +67,7 @@ export function DailyMissionCard({
                   <div
                     className={`${isLoginStreakMission ? "bg-orange-500" : "bg-yellow-500"} h-4 rounded-full`}
                     style={{
-                      width: `${(progressPoint / progressLimit) * 100}%`,
+                      width: `${Math.min((progressPoint / progressLimit) * 100, 100)}%`,
                     }}
                   />
                 </div>

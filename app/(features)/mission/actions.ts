@@ -21,7 +21,7 @@ export async function updateLoginStreakMission(
     const { data: dailyMissionData, error: dailyMissionError } = await supabase
       .from("daily_mission")
       .select("*")
-      .eq("name", "Login Streak")
+      .eq("name", "Login Streak!")
       .single();
 
     if (dailyMissionError) {
@@ -51,13 +51,13 @@ export async function updateLoginStreakMission(
     if (!progressData || needsReset) {
       // Create or reset the progress record
       const newProgressData = {
-        userId,
-        dailyMissionId: dailyMissionData.id,
-        progressPoint: 1, // Start with 1 for today's login
+        user_id: userId,                     // Changed from userId
+        daily_mission_id: dailyMissionData.id,  // Changed from dailyMissionId
+        progress_point: 1,                  // Changed from progressPoint
         // Removed currentLevelRequirement field
-        completedAt: null, // Not completed yet
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
+        completed_at: null,                 // Changed from completedAt
+        created_at: now.toISOString(),      // Changed from createdAt
+        updated_at: now.toISOString(),      // Changed from updatedAt
       };
 
       if (!progressData) {
@@ -66,8 +66,9 @@ export async function updateLoginStreakMission(
           .from("user_daily_mission_progress")
           .insert(newProgressData);
 
+        // Inside updateLoginStreakMission function
         if (insertError) {
-          console.error("Error creating daily mission progress:", insertError);
+          console.error("Error creating daily mission progress:", insertError, JSON.stringify(newProgressData));
           return false;
         }
       } else {
@@ -419,8 +420,13 @@ export async function updateDictionaryDiverMission(
  * Updates the Level Up mission progress based on user's current level
  * This function should be called when a user's level changes
  * It will update the mission progress to match the user's current level
+ * @param userId The user's ID
+ * @param skipRevalidation If true, skips calling revalidatePath (use when called during rendering)
  */
-export async function updateLevelUpMission(userId: string): Promise<boolean> {
+export async function updateLevelUpMission(
+  userId: string,
+  skipRevalidation: boolean = false
+): Promise<boolean> {
   const supabase = await createClient();
 
   try {
@@ -453,6 +459,14 @@ export async function updateLevelUpMission(userId: string): Promise<boolean> {
       return false;
     }
 
+    // Define fixed level requirements and rewards
+    const levelData = [
+      { level: 1, requirement: 5, xpReward: 100, pointsReward: 50 },
+      { level: 2, requirement: 8, xpReward: 200, pointsReward: 100 },
+      { level: 3, requirement: 12, xpReward: 300, pointsReward: 150 },
+      { level: 4, requirement: 15, xpReward: 400, pointsReward: 200 },
+    ];
+
     // Get the user's current mission progress
     const { data: progressData, error: progressError } = await supabase
       .from("user_mission_progress")
@@ -469,18 +483,17 @@ export async function updateLevelUpMission(userId: string): Promise<boolean> {
 
     // If no progress record exists, create one
     if (!progressData) {
-      // Calculate initial level requirements and rewards
-      const levelMultiplier = 1; // First level has no multiplier
+      // Create new progress record with level 1 data
+      const levelInfo = levelData[0]; // Level 1 data
 
-      // Create new progress record
       const newProgressData = {
         user_id: userId,
         mission_id: missionData.id,
         progress_point: userData.level, // Set to current user level
         current_level: 1,
-        current_level_requirement: missionData.level_requirement, // Base requirement for level 1
-        current_xp_reward: missionData.xp_reward, // Base XP reward for level 1
-        current_points_reward: missionData.points_reward, // Base points reward for level 1
+        current_level_requirement: levelInfo.requirement,
+        current_xp_reward: levelInfo.xpReward,
+        current_points_reward: levelInfo.pointsReward,
         last_completed_at: null,
       };
 
@@ -493,22 +506,19 @@ export async function updateLevelUpMission(userId: string): Promise<boolean> {
         return false;
       }
     } else {
-      // Only update the progress_point if it's less than the user's current level
-      // This ensures we don't reset progress that's already higher
-      // if (progressData.progress_point < userData.level) {
-      //   const { error: updateError } = await supabase
-      //     .from("user_mission_progress")
-      //     .update({
-      //       progress_point: Math.max(progressData.progress_point, userData.level),
-      //       updated_at: new Date().toISOString(),
-      //     })
-      //     .eq("id", progressData.id);
+      // Update progress_point to match user's current level
+      const { error: updateError } = await supabase
+        .from("user_mission_progress")
+        .update({
+          progress_point: userData.level,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", progressData.id);
 
-      //   if (updateError) {
-      //     console.error("Error updating mission progress:", updateError);
-      //     return false;
-      //   }
-      // }
+      if (updateError) {
+        console.error("Error updating mission progress:", updateError);
+        return false;
+      }
 
       // Check if the mission level should be completed based on progress
       if (
@@ -517,54 +527,57 @@ export async function updateLevelUpMission(userId: string): Promise<boolean> {
           new Date(progressData.last_completed_at).getTime() <
             Date.now() - 86400000) // Only complete once per day
       ) {
-        // Calculate new level requirements and rewards based on next level
-        const nextLevel = progressData.current_level + 1;
-        const levelMultiplier = 1 + (nextLevel - 1) * 1.5; // 50% increase per level
-
-        // Calculate new requirement with 1.5 multiplier and round to nearest integer
-        const newRequirement = Math.round(
-          missionData.level_requirement * levelMultiplier
+        // Find the next level data
+        const currentLevelIndex = levelData.findIndex(
+          (data) => data.level === progressData.current_level
         );
 
-        // Update mission progress with new level and requirements
-        const { error: completeError } = await supabase
-          .from("user_mission_progress")
-          .update({
-            current_level: nextLevel,
-            current_level_requirement: newRequirement,
-            current_xp_reward: Math.floor(
-              missionData.xp_reward * levelMultiplier
-            ),
-            current_points_reward: Math.floor(
-              missionData.points_reward * levelMultiplier
-            ),
-            last_completed_at: new Date().toISOString(),
-            // Don't reset progress_point here
-          })
-          .eq("id", progressData.id);
+        // If we found the current level and there's a next level available
+        if (
+          currentLevelIndex >= 0 &&
+          currentLevelIndex < levelData.length - 1
+        ) {
+          const nextLevelInfo = levelData[currentLevelIndex + 1];
 
-        if (completeError) {
-          console.error("Error completing mission level:", completeError);
-          return false;
-        }
+          // Update mission progress with new level and requirements
+          const { error: completeError } = await supabase
+            .from("user_mission_progress")
+            .update({
+              current_level: nextLevelInfo.level,
+              current_level_requirement: nextLevelInfo.requirement,
+              current_xp_reward: nextLevelInfo.xpReward,
+              current_points_reward: nextLevelInfo.pointsReward,
+              last_completed_at: new Date().toISOString(),
+            })
+            .eq("id", progressData.id);
 
-        // Award the user with XP and points
-        const { error: rewardError } = await supabase
-          .from("users")
-          .update({
-            xp: (userData.xp || 0) + progressData.current_xp_reward,
-            points: (userData.points || 0) + progressData.current_points_reward,
-          })
-          .eq("id", userId);
+          if (completeError) {
+            console.error("Error completing mission level:", completeError);
+            return false;
+          }
 
-        if (rewardError) {
-          console.error("Error awarding mission rewards:", rewardError);
-          return false;
+          // Award the user with XP and points
+          const { error: rewardError } = await supabase
+            .from("users")
+            .update({
+              xp: (userData.xp || 0) + progressData.current_xp_reward,
+              points:
+                (userData.points || 0) + progressData.current_points_reward,
+            })
+            .eq("id", userId);
+
+          if (rewardError) {
+            console.error("Error awarding mission rewards:", rewardError);
+            return false;
+          }
         }
       }
     }
 
-    revalidatePath("/mission");
+    // Only call revalidatePath if skipRevalidation is false
+    if (!skipRevalidation) {
+      revalidatePath("/mission");
+    }
     return true;
   } catch (error) {
     console.error("Error in updateLevelUpMission:", error);
@@ -761,9 +774,12 @@ export async function updateSignMasterMission(
  * Updates the Word Warrior mission progress based on completed dictionary entries
  * This function should be called when a user completes a dictionary entry
  * It will count the number of completed entries and update the mission progress accordingly
+ * @param userId The user ID to update mission progress for
+ * @param skipRevalidation Set to true when calling during page rendering to avoid revalidatePath error
  */
 export async function updateWordWarriorMission(
-  userId: string
+  userId: string,
+  skipRevalidation = false
 ): Promise<boolean> {
   const supabase = await createClient();
 
@@ -790,8 +806,7 @@ export async function updateWordWarriorMission(
       .from("user_dictionary_progress")
       .select("*", { count: "exact", head: false })
       .eq("user_id", userId)
-      .gte("progress_point", 5); // Consider entries with progress_point >= 1 as completed
-      // .not("completed_at", "is", null);
+      .gte("progress_point", 5); // Consider entries with progress_point >= 5 as completed
 
     if (countError) {
       console.error("Error counting completed dictionary entries:", countError);
@@ -914,7 +929,11 @@ export async function updateWordWarriorMission(
       }
     }
 
-    revalidatePath("/mission");
+    // Only call revalidatePath if skipRevalidation is false
+    if (!skipRevalidation) {
+      revalidatePath("/mission");
+    }
+
     return true;
   } catch (error) {
     console.error("Error in updateWordWarriorMission:", error);
