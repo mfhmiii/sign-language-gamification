@@ -251,8 +251,8 @@ export const useMission = () => {
       }
 
       // Calculate new requirements and rewards based on next level
-      const nextLevel = progress.current_level + 1;
-      const levelMultiplier = 1 + (nextLevel - 1) * 1.5; // 50% increase per level
+      const nextLevel = regularProgress.current_level + 1;
+      // const levelMultiplier = 1 + (nextLevel - 1) * 1.5; // 50% increase per level
 
       // Update mission progress with scaled requirements
       const { error: progressUpdateError } = await supabase

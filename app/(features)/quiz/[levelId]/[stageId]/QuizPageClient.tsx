@@ -145,13 +145,16 @@ export default function QuizPageClient({
 
         // Set all questions for this stage
         setQuestions(stageQuestions);
-        
+
         // Set total questions for this stage
         setTotalQuestionsInLevel(stageQuestions.length);
 
         // Find the first uncompleted question to start with
         const firstUncompletedIndex = stageQuestions.findIndex(
-          (q) => !q.user_quiz_progress?.some((p: { is_completed: boolean }) => p.is_completed)
+          (q) =>
+            !q.user_quiz_progress?.some(
+              (p: { is_completed: boolean }) => p.is_completed
+            )
         );
 
         // If all questions are completed, redirect to stage-cleared
@@ -259,32 +262,44 @@ export default function QuizPageClient({
         .eq("user_id", user.id)
         .eq("question_id", currentQuestion.id)
         .single();
-      
+
       // Update the current question's progress in the local state
       if (updatedProgress) {
         const updatedQuestions = [...questions];
         updatedQuestions[currentQuestionIndex] = {
           ...updatedQuestions[currentQuestionIndex],
-          user_quiz_progress: [{
-            is_completed: updatedProgress.is_completed,
-            user_id: user.id
-          }]
+          user_quiz_progress: [
+            {
+              is_completed: updatedProgress.is_completed,
+              user_id: user.id,
+            },
+          ],
         };
         setQuestions(updatedQuestions);
-        
+
         // If this is the last question and it's now completed, redirect to stage-cleared
-        if (updatedProgress.is_completed && currentQuestionIndex === questions.length - 1) {
-          console.log(`DEBUG - Last question completed, navigating to stage-cleared`);
-          router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
-          return;
-        }
+        // if (
+        //   updatedProgress.is_completed &&
+        //   currentQuestionIndex === questions.length - 1
+        // ) 
+        // {
+        //   console.log(
+        //     `DEBUG - Last question completed, navigating to stage-cleared`
+        //   );
+        //   router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
+        //   return;
+        // }
       }
     }
 
     // Find the next uncompleted question
     let nextUncompletedIndex = -1;
     for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
-      if (!questions[i].user_quiz_progress?.some((p: { is_completed: boolean }) => p.is_completed)) {
+      if (
+        !questions[i].user_quiz_progress?.some(
+          (p: { is_completed: boolean }) => p.is_completed
+        )
+      ) {
         nextUncompletedIndex = i;
         break;
       }
@@ -323,9 +338,16 @@ export default function QuizPageClient({
 
       // If the current question was just completed and it was the last one,
       // we should redirect to stage-cleared regardless of the allQuestionsCompleted check
-      if (currentQuestion?.user_quiz_progress?.some((p: { is_completed: boolean }) => p.is_completed) && 
-          nextUncompletedIndex === -1) {
-        console.log(`DEBUG - Last question completed, navigating to stage-cleared`);
+      if (
+        currentQuestion?.user_quiz_progress?.some(
+          (p: { is_completed: boolean }) => p.is_completed
+        ) 
+        &&
+        nextUncompletedIndex === -1
+      ) {
+        console.log(
+          `DEBUG - Last question completed, navigating to stage-cleared`
+        );
         router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
         return;
       }
@@ -355,7 +377,7 @@ export default function QuizPageClient({
           // Debug: Log navigation to retry-confirmation
           console.log(`DEBUG - Navigating to retry-confirmation`);
           // If there are uncompleted questions, go to retry confirmation
-          router.push(`/quiz/${levelId}/retry-confirmation`);
+          router.push(`/quiz/${levelId}/${stageId}/retry-confirmation`);
         }
       }
     }

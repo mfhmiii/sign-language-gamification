@@ -4,10 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Card } from "@/components/ui/card";
-import { CircularProgress } from "@/components/circular-progress";
-import { Lock, CheckCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StageIndicator } from "@/components/stage-indicator";
+import { CustomStageCircle } from "@/components/stage-indicator";
+import { ProgressBar } from "@/components/progress-bar";
+
+// Remove the StageCircle import
+// import { StageCircle } from "@/components/stage-circle";
 
 interface QuizPageClientProps {
   levelId: string;
@@ -64,7 +67,7 @@ export default function QuizPageClient({ levelId }: QuizPageClientProps) {
         const { data: questions, error: questionsError } = await supabase
           .from("quiz_questions")
           .select("id, stage")
-          .eq("level_id", levelData.id) // Use the actual UUID from levelData
+          .eq("level_id", levelData.id) 
           .order("stage", { ascending: true });
 
         if (questionsError) {
@@ -78,7 +81,7 @@ export default function QuizPageClient({ levelId }: QuizPageClientProps) {
           .from("user_quiz_progress")
           .select("question_id, is_completed")
           .eq("user_id", user.id)
-          .eq("level_id", levelData.id); // Use the actual UUID from levelData
+          .eq("level_id", levelData.id);
 
         if (progressError) {
           throw new Error(`Error fetching progress: ${progressError.message}`);
@@ -167,13 +170,78 @@ export default function QuizPageClient({ levelId }: QuizPageClientProps) {
 
   return (
     <div className="bg-white min-h-screen pb-16 mt-10">
-      <div className="flex flex-col items-center justify-center px-6 py-12">
-        {/* Journey Path */}
-        <StageIndicator
-          stages={stages}
-          onStageClick={handleStageClick}
-          isStageLocked={isStageLocked}
-        />
+      <div className="flex flex-col items-center justify-center px-4 py-12 max-w-7xl mx-auto">
+        {/* Level Title */}
+        <h1 className="text-2xl font-bold mb-8 text-center">{levelName}</h1>
+        
+        {/* Journey Path - Horizontal for larger screens, vertical for mobile */}
+        <div className="w-full flex justify-center">
+          {/* Horizontal layout for medium and larger screens */}
+          <div className="hidden md:block w-full overflow-x-auto">
+            <StageIndicator
+              stages={stages}
+              onStageClick={handleStageClick}
+              isStageLocked={isStageLocked}
+              className="mx-auto"
+            />
+          </div>
+          
+          {/* Vertical layout for mobile */}
+          <div className="md:hidden flex flex-col items-center space-y-4 w-full max-w-xs mx-auto">
+            {stages.map((stage, index) => {
+              const isLocked = isStageLocked(index);
+              const isCompleted = stage.is_completed;
+              const isFirstUnlocked = !isLocked && !isCompleted && 
+                index === stages.findIndex((s, i) => !isStageLocked(i) && !s.is_completed);
+              
+              const progressPercentage = isCompleted ? 100 : 
+                                        (!isLocked && stage.percentage) ? stage.percentage : 
+                                        isLocked ? 0 : 0;
+              
+              // Determine stage type
+              let stageType: "locked" | "active" | "completed" | "finish" = "locked";
+              if (!isLocked) {
+                stageType = isCompleted ? "completed" : "active";
+              }
+              
+              return (
+                <div key={stage.id} className="flex flex-col items-center w-full">
+                  <div className="flex items-center justify-center">
+                    <CustomStageCircle 
+                      type={stageType}
+                      percentage={progressPercentage}
+                      isFirstUnlocked={isFirstUnlocked}
+                      stageNumber={stage.stage}
+                      onClick={() => !isLocked && handleStageClick(stage, index)}
+                    />
+                  </div>
+                  
+                  {/* Vertical connector line */}
+                  {index < stages.length - 1 && (
+                    <ProgressBar percentage={progressPercentage} vertical={true} />
+                  )}
+                </div>
+              );
+            })}
+            
+            {/* Add progress bar for the last stage before finish */}
+            {stages.length > 0 && (
+              <ProgressBar 
+                percentage={
+                  stages[stages.length - 1].is_completed 
+                    ? 100 
+                    : stages[stages.length - 1].percentage || 0
+                } 
+                vertical={true} 
+              />
+            )}
+            
+            {/* Finish indicator */}
+            <div className="flex flex-col items-center">
+              <CustomStageCircle type="finish" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -85,9 +85,6 @@ export default function QuizQuestionRenderer({
       if (!selectedAnswer || !question.correct_answer) return;
 
       const isCorrectAnswer = selectedAnswer === question.correct_answer;
-      setIsCorrect(isCorrectAnswer);
-      setIsSubmitted(true);
-
       // Update progress in database
       await updateQuizProgress(
         userId,
@@ -95,11 +92,14 @@ export default function QuizQuestionRenderer({
         question.level_id,
         isCorrectAnswer
       );
+      setIsCorrect(isCorrectAnswer);
+      setIsSubmitted(true);
+
     } else if (question.type === "memory_match") {
       // For memory_match, mark as completed (skipped) if not already completed
+      await updateQuizProgress(userId, question.id, question.level_id, false);
       setIsSubmitted(true);
       setIsCorrect(false);
-      await updateQuizProgress(userId, question.id, question.level_id, false);
     }
   };
 
@@ -180,23 +180,23 @@ export default function QuizQuestionRenderer({
 
   // useEffect(() => {
   //   let socket: any;
-  
+
   //   if (isCameraOpen && videoRef.current) {
   //     const connectAndStream = async () => {
   //       socket = io("https://our-silences.online", {
   //         transports: ["websocket"],
   //         secure: true,
   //       });
-  
+
   //       const mediaStream = await navigator.mediaDevices.getUserMedia({
   //         video: true,
   //       });
   //       setStream(mediaStream);
   //       videoRef.current!.srcObject = mediaStream;
-  
+
   //       const canvas = canvasRef.current;
   //       const ctx = canvas?.getContext("2d");
-  
+
   //       const sendFrame = () => {
   //         if (videoRef.current && canvas && ctx) {
   //           canvas.width = videoRef.current.videoWidth;
@@ -206,21 +206,21 @@ export default function QuizQuestionRenderer({
   //           socket.emit("frame", { image: imageData });
   //         }
   //       };
-  
+
   //       const intervalId = setInterval(sendFrame, 100);
-  
+
   //       socket.on("prediction", (data: { sentence: string }) => {
   //         setPredictionText("📜 " + data.sentence);
   //       });
-  
+
   //       socket.on("disconnect", () => {
   //         clearInterval(intervalId);
   //       });
   //     };
-  
+
   //     connectAndStream();
   //   }
-  
+
   //   return () => {
   //     socket?.disconnect();
   //     if (stream) {
@@ -242,7 +242,7 @@ export default function QuizQuestionRenderer({
     stopCamera(); // 🔥 now it stops everything
     setIsCameraOpen(false);
   };
-  
+
   function renderGestureToText() {
     return (
       <div className="relative">
@@ -256,7 +256,7 @@ export default function QuizQuestionRenderer({
                 className="w-full h-full object-cover"
               />
               <canvas ref={canvasRef} style={{ display: "none" }} />
-  
+
               {/* Optional guide video */}
               {question.gesture_video_url && (
                 <div className="absolute top-4 right-4 w-1/4 aspect-video rounded-lg overflow-hidden bg-black/50">
@@ -269,18 +269,18 @@ export default function QuizQuestionRenderer({
                   />
                 </div>
               )}
-  
+
               <div className="absolute bottom-4 right-4 flex gap-2">
                 <Button
                   onClick={async () => {
-                    setIsCorrect(true);
-                    setIsSubmitted(true);
                     await updateQuizProgress(
                       userId,
                       question.id,
                       question.level_id,
                       true
                     );
+                    setIsCorrect(true);
+                    setIsSubmitted(true);
                   }}
                   variant="secondary"
                   className="bg-green-500 hover:bg-green-600 text-white"
@@ -291,7 +291,7 @@ export default function QuizQuestionRenderer({
                   Close Camera
                 </Button>
               </div>
-  
+
               {/* Display prediction text */}
               <div className="absolute top-4 left-4 bg-black/70 text-white text-sm p-2 rounded">
                 {predictionText}
@@ -311,7 +311,7 @@ export default function QuizQuestionRenderer({
             </div>
           )}
         </div>
-  
+
         <h2 className="text-lg font-medium text-center mt-4">
           {question.question_text}
         </h2>
@@ -422,6 +422,7 @@ export default function QuizQuestionRenderer({
     const totalPairs = question.correct_answer_pairs.length;
 
     const handleCardClick = (card: { text: string; videoUrl: string }) => {
+      // Check if the card is already matched or if the game is submitted
       if (
         isSubmitted ||
         matchedPairs.some(
@@ -447,8 +448,9 @@ export default function QuizQuestionRenderer({
 
         if (isMatch) {
           // Create new matched pairs with the correct structure
-          const newMatchedPairs = [...matchedPairs, 
-            { text: secondCard.text, videoUrl: firstCard.videoUrl }
+          const newMatchedPairs = [
+            ...matchedPairs,
+            { text: secondCard.text, videoUrl: firstCard.videoUrl },
           ];
           setMatchedPairs(newMatchedPairs);
 
@@ -494,14 +496,17 @@ export default function QuizQuestionRenderer({
             </h3>
             <div className="space-y-2 flex flex-col md:flex-row justify-around">
               {videoOptions.map((card, index) => {
-                const actualIndex = question.memory_options.findIndex(
-                  (opt) => opt.videoUrl === card.videoUrl
+                const isMatched = matchedPairs.some(
+                  (pair) => pair.videoUrl === card.videoUrl
+                );
+                const isWrong = wrongPair.some(
+                  (pair) => pair.videoUrl === card.videoUrl
                 );
                 return (
                   <div
                     key={index}
-                    onClick={() => handleCardClick(card)}
-                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 align-middle ${matchedPairs.find((pair) => pair.videoUrl === card.videoUrl) ? "bg-green-100" : wrongPair.find((pair) => pair.videoUrl === card.videoUrl) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-200 hover:border-slate-500"}`}
+                    onClick={() => !isMatched && handleCardClick(card)}
+                    className={`aspect-video rounded-lg overflow-hidden ${isMatched ? "cursor-default" : "cursor-pointer"} transition-all duration-300 transform ${!isMatched && "hover:scale-105"} align-middle ${isMatched ? "bg-green-100" : isWrong ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-200 hover:border-slate-500"}`}
                   >
                     <video
                       src={card.videoUrl}
@@ -521,14 +526,17 @@ export default function QuizQuestionRenderer({
             <h3 className="text-sm font-medium text-center mb-2">Arti</h3>
             <div className="space-y-2 flex flex-col md:flex-row justify-around">
               {textOptions.map((card, index) => {
-                const actualIndex = question.memory_options.findIndex(
-                  (opt) => opt.text === card.text
+                const isMatched = matchedPairs.some(
+                  (pair) => pair.text === card.text
+                );
+                const isWrong = wrongPair.some(
+                  (pair) => pair.text === card.text
                 );
                 return (
                   <div
                     key={index}
-                    onClick={() => handleCardClick(card)}
-                    className={`aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 border border-slate-200 flex items-center justify-center w-full h-full align-middle ${matchedPairs.find((pair) => pair.text === card.text) ? "bg-green-100" : wrongPair.find((pair) => pair.text === card.text) ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-50"}`}
+                    onClick={() => !isMatched && handleCardClick(card)}
+                    className={`aspect-video rounded-lg overflow-hidden ${isMatched ? "cursor-default" : "cursor-pointer"} transition-all duration-300 transform ${!isMatched && "hover:scale-105"} border border-slate-200 flex items-center justify-center w-full h-full align-middle ${isMatched ? "bg-green-100" : isWrong ? "bg-red-100 border-2 border-red-500" : "hover:bg-gray-50"}`}
                   >
                     {card.text}
                   </div>

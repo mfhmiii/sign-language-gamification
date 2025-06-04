@@ -166,8 +166,14 @@ export default function ProfilePage() {
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <User size={48} className="text-gray-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 overflow-hidden">
+              <Image 
+                src="/images/default-avatar.svg"
+                alt="Default Profile"
+                width={48}
+                height={48}
+                className="object-cover"
+              />
             </div>
           )}
           <label

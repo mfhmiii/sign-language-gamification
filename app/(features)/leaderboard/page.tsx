@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
                   <Image
                     src={
                       player.profile_photo ||
-                      "/placeholder.svg?height=80&width=80"
+                      "/images/default-avatar.svg"
                     }
                     alt={player.username}
                     fill
@@ -195,7 +195,7 @@ export default function LeaderboardPage() {
                   <Image
                     src={
                       player.profile_photo ||
-                      "/placeholder.svg?height=32&width=32"
+                      "/images/default-avatar.svg"
                     }
                     alt={player.username}
                     fill

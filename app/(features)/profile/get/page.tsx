@@ -146,7 +146,7 @@ export default function UserProfile() {
           <div className="relative w-16 h-16 rounded-full overflow-hidden bg-red-400">
             <Image
               src={
-                userData.profile_photo || "/placeholder.svg?height=64&width=64"
+                userData.profile_photo || "/images/default-avatar.svg"
               }
               alt="User avatar"
               width={64}

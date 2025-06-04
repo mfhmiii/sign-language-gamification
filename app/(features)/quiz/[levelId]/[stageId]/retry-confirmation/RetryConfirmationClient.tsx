@@ -13,8 +13,10 @@ interface Level {
 
 export default function RetryConfirmationClient({
   levelId,
+  stageId,
 }: {
   levelId: string;
+  stageId: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -37,31 +39,46 @@ export default function RetryConfirmationClient({
         // Fetch level details
         const { data: levelData } = await supabase
           .from("quiz_level")
-          .select("*")
-          .eq("order", levelId)
+          .select("id, name")
+          .eq('"order"', parseInt(levelId))
           .single();
 
-        if (levelData) {
-          setLevel(levelData);
+        if (!levelData) {
+          console.error("Level not found");
+          router.push("/home");
+          return;
         }
 
-        // Count incorrect questions
-        const { data: uncompletedQuestions } = await supabase
-          .from("quiz_questions")
-          .select(
-            `
-            id,
-            user_quiz_progress!inner(
-              is_completed,
-              user_id
-            )
-          `
-          )
-          .eq("level_id", levelId)
-          .eq("user_quiz_progress.user_id", user.id)
-          .eq("user_quiz_progress.is_completed", false);
+        setLevel(levelData);
 
-        setIncorrectCount(uncompletedQuestions?.length || 0);
+        // Check if all questions in this stage are completed
+        const { data: stageQuestions } = await supabase
+          .from("quiz_questions")
+          .select("id")
+          .eq("level_id", levelData.id)
+          .eq("stage", parseInt(stageId));
+
+        if (!stageQuestions || stageQuestions.length === 0) {
+          console.error("No questions found for this stage");
+          router.push("/home");
+          return;
+        }
+
+        const questionIds = stageQuestions.map((q) => q.id);
+
+        // Get user progress for these questions
+        const { data: userProgress } = await supabase
+          .from("user_quiz_progress")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("level_id", levelData.id)
+          .in("question_id", questionIds);
+
+        // Count incorrect questions
+        const uncompletedQuestions = userProgress ? 
+          userProgress.filter(p => !p.is_completed) : [];
+        
+        setIncorrectCount(uncompletedQuestions.length);
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -70,10 +87,10 @@ export default function RetryConfirmationClient({
     }
 
     loadData();
-  }, [levelId, supabase, router]);
+  }, [levelId, stageId, router, supabase]);
 
   const handleRetry = () => {
-    router.push(`/quiz/${levelId}`);
+    router.push(`/quiz/${levelId}/${stageId}`);
   };
 
   if (loading) {
