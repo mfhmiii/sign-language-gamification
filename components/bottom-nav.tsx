@@ -17,7 +17,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-background border-t border-foreground/10 p-2">
+    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-2"> {/* Changed from bg-background */}
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map(({ name, href, icon: Icon, special }) => {
           const isActive = pathname === href;
@@ -31,11 +31,11 @@ export function BottomNav() {
               >
                 <div
                   className={`
-                  ${isActive ? "bg-yellow-500" : "bg-primary"} 
+                  ${isActive ? "bg-yellow-500" : "bg-black"} 
                   text-white rounded-full p-3 -mt-6 shadow-lg 
                   transition-all duration-200 
                   group-hover:shadow-xl group-hover:scale-110 
-                  ${isActive ? "group-hover:bg-yellow-400" : "group-hover:bg-primary-dark"}
+                  ${isActive ? "group-hover:bg-yellow-400" : "group-hover:bg-gray-800"}
                 `}
                 >
                   <Icon size={24} className={isActive ? "animate-pulse" : ""} />
@@ -43,10 +43,10 @@ export function BottomNav() {
                 <span
                   className={`
                   text-xs 
-                  ${isActive ? "text-primary font-medium" : "text-muted-foreground"} 
+                  ${isActive ? "text-black font-medium" : "text-gray-500"} 
                   mt-1
                   transition-colors duration-200
-                  group-hover:${isActive ? "text-primary/90" : "text-foreground/80"}
+                  group-hover:${isActive ? "text-gray-900" : "text-gray-700"}
                 `}
                 >
                   {name}
@@ -64,17 +64,17 @@ export function BottomNav() {
               <Icon
                 size={24}
                 className={`
-                  ${isActive ? "text-primary" : "text-muted-foreground"}
+                  ${isActive ? "text-black" : "text-gray-500"}
                   transition-colors duration-200
-                  group-hover:${isActive ? "text-primary/90" : "text-foreground/80"}
+                  group-hover:${isActive ? "text-gray-900" : "text-gray-700"}
                 `}
               />
               <span
                 className={`
                 text-xs 
-                ${isActive ? "text-primary font-medium" : "text-muted-foreground"}
+                ${isActive ? "text-black font-medium" : "text-gray-500"}
                 transition-colors duration-200
-                group-hover:${isActive ? "text-primary/90" : "text-foreground/80"}
+                group-hover:${isActive ? "text-gray-900" : "text-gray-700"}
               `}
               >
                 {name}

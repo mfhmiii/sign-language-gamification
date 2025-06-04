@@ -1,11 +1,11 @@
-import type React from "react"
+import type React from "react";
 
 type StatItemProps = {
-  icon: React.ReactNode
-  label: string
-  value: string | number
-  classname?: string
-}
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  classname?: string;
+};
 
 const StatItem = ({ icon, label, value }: StatItemProps) => {
   return (
@@ -16,23 +16,33 @@ const StatItem = ({ icon, label, value }: StatItemProps) => {
       </div>
       <p className="text-xl md:text-2xl font-bold">{value}</p>
     </div>
-  )
-}
+  );
+};
 
 type StatsCardProps = {
-  points: number
-  ranking: number
-  level: number
-  className?: string
-}
+  points: number;
+  ranking: number;
+  level: number;
+  className?: string;
+};
 
-export default function StatsCard({ points, ranking, level, className = "" }: StatsCardProps) {
+export default function StatsCard({
+  points,
+  ranking,
+  level,
+  className = "",
+}: StatsCardProps) {
   return (
     <div className={`bg-white rounded-xl py-4 shadow-sm ${className}`}>
       <div className="grid grid-cols-3 divide-x-2 divide-green-400">
         <StatItem
           icon={
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="#F6C833"
+              className="w-6 h-6"
+            >
               <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
               <path
                 fillRule="evenodd"
@@ -46,7 +56,12 @@ export default function StatsCard({ points, ranking, level, className = "" }: St
         />
         <StatItem
           icon={
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="#F6C833"
+              className="w-6 h-6"
+            >
               <path
                 fillRule="evenodd"
                 d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 00-.584.859 6.753 6.753 0 006.138 5.6 6.73 6.73 0 002.743-.356l1.918-.56a.75.75 0 00.523-.71v-5.57a.75.75 0 00-.522-.71l-1.919-.56a6.767 6.767 0 00-2.743-.356 6.753 6.753 0 00-2.483.466z"
@@ -60,7 +75,12 @@ export default function StatsCard({ points, ranking, level, className = "" }: St
         />
         <StatItem
           icon={
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F6C833" className="w-6 h-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="#F6C833"
+              className="w-6 h-6"
+            >
               <path d="M11.644 1.59a.75.75 0 01.712 0l9.75 5.25a.75.75 0 010 1.32l-9.75 5.25a.75.75 0 01-.712 0l-9.75-5.25a.75.75 0 010-1.32l9.75-5.25z" />
               <path d="M3.265 10.602l7.668 4.129a2.25 2.25 0 002.134 0l7.668-4.13 1.37.739a.75.75 0 010 1.32l-9.75 5.25a.75.75 0 01-.71 0l-9.75-5.25a.75.75 0 010-1.32l1.37-.738z" />
               <path d="M10.933 19.231l-7.668-4.13-1.37.739a.75.75 0 000 1.32l9.75 5.25c.221.12.489.12.71 0l9.75-5.25a.75.75 0 000-1.32l-1.37-.738-7.668 4.13a2.25 2.25 0 01-2.134-.001z" />
@@ -71,6 +91,5 @@ export default function StatsCard({ points, ranking, level, className = "" }: St
         />
       </div>
     </div>
-  )
+  );
 }
-

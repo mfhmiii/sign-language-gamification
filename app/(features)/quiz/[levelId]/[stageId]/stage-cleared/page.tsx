@@ -7,7 +7,9 @@ interface PageProps {
 }
 
 export default function StageClearedPage({ params }: PageProps) {
-  const resolvedParams = use(Promise.resolve(params || { levelId: "", stageId: "" }));
+  const resolvedParams = use(
+    Promise.resolve(params || { levelId: "", stageId: "" })
+  );
   const levelId = resolvedParams.levelId;
   const stageId = resolvedParams.stageId;
 

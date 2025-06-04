@@ -145,7 +145,7 @@ export default async function QuizPage() {
                     <Card
                       className={`p-4 sm:p-6 transition-colors hover:opacity-90 ${
                         isLocked
-                          ? "bg-muted"
+                          ? "bg-gray-100" // Changed from "bg-muted"
                           : isCompleted
                             ? "bg-green-200"
                             : "bg-[#D1F2D9]"
@@ -159,7 +159,7 @@ export default async function QuizPage() {
                           <div
                             className={`text-base sm:text-lg font-medium rounded-full px-3 sm:px-4 py-0.5 sm:py-1 inline-block truncate max-w-full ${
                               isLocked
-                                ? "bg-muted-foreground/20"
+                                ? "bg-gray-200" // Changed from "bg-muted-foreground/20"
                                 : "bg-yellow-200"
                             }`}
                           >
@@ -168,7 +168,7 @@ export default async function QuizPage() {
                         </div>
                         <div className="flex-shrink-0">
                           {isLocked ? (
-                            <div className="text-muted-foreground">
+                            <div className="text-gray-400"> {/* Changed from "text-muted-foreground" */}
                               <Lock className="w-6 h-6 sm:w-8 sm:h-8" />
                             </div>
                           ) : isCompleted ? (

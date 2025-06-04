@@ -11,16 +11,18 @@ interface PageProps {
 }
 
 export default function RetryConfirmationPage({ params }: PageProps) {
-  const resolvedParams = use(Promise.resolve(params || { levelId: "", stageId: "" }));
+  const resolvedParams = use(
+    Promise.resolve(params || { levelId: "", stageId: "" })
+  );
   const levelId = resolvedParams.levelId;
   const stageId = resolvedParams.stageId;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     async function checkIncorrectQuestions() {
       const supabase = createClient();
-      
+
       try {
         // Get current user
         const {
@@ -68,15 +70,16 @@ export default function RetryConfirmationPage({ params }: PageProps) {
           .in("question_id", questionIds);
 
         // Count incorrect questions
-        const uncompletedQuestions = userProgress ? 
-          userProgress.filter(p => !p.is_completed) : [];
-        
+        const uncompletedQuestions = userProgress
+          ? userProgress.filter((p) => !p.is_completed)
+          : [];
+
         // If there are no incorrect questions, redirect to stage-cleared
         if (uncompletedQuestions.length < 1) {
           router.push(`/quiz/${levelId}/${stageId}/stage-cleared`);
           return;
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error checking incorrect questions:", error);
@@ -88,7 +91,11 @@ export default function RetryConfirmationPage({ params }: PageProps) {
   }, [levelId, stageId, router]);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[200px]">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        Loading...
+      </div>
+    );
   }
 
   return (

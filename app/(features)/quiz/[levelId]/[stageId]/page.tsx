@@ -7,7 +7,9 @@ interface PageProps {
 }
 
 export default function QuizPage({ params }: PageProps) {
-  const resolvedParams = use(Promise.resolve(params || { levelId: "", stageId: "" }));
+  const resolvedParams = use(
+    Promise.resolve(params || { levelId: "", stageId: "" })
+  );
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <QuizPageClient
