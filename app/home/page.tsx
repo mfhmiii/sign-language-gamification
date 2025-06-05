@@ -98,10 +98,12 @@ export default async function QuizPage() {
     return (
       <main className="bg-green-400 xl:mx-36 md:mx-14">
         <div className="mb-4 px-6 pt-16">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-black"> {/* Added text-black */}
             Halo, {user.username || "User"}...
           </h1>
-          <h2 className="text-3xl font-bold text-primary">Selamat Belajar</h2>
+          <h2 className="text-3xl font-bold text-black"> {/* Changed from text-primary to text-black */}
+            Selamat Belajar
+          </h2>
         </div>
 
         <StatsCard
@@ -119,7 +121,7 @@ export default async function QuizPage() {
           />
           <hr className="bg-slate-100 h-2" />
           <div className="bg-white rounded-xl m-6 md:m-12 shadow-sm">
-            <h3 className="text-xl font-semibold mb-4">
+            <h3 className="text-xl font-semibold mb-4 text-black"> {/* Added text-black */}
               Pilih Level Belajar !
             </h3>
             <div className="grid grid-cols-1 gap-4">
@@ -153,13 +155,13 @@ export default async function QuizPage() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="space-y-1 min-w-0">
-                          <h4 className="text-xl sm:text-2xl font-bold truncate">
+                          <h4 className="text-xl sm:text-2xl font-bold truncate text-black"> {/* Added text-black */}
                             Level {level.order}
                           </h4>
                           <div
-                            className={`text-base sm:text-lg font-medium rounded-full px-3 sm:px-4 py-0.5 sm:py-1 inline-block truncate max-w-full ${
+                            className={`text-base sm:text-lg font-medium rounded-full px-3 sm:px-4 py-0.5 sm:py-1 inline-block truncate max-w-full text-black ${  /* Added text-black */
                               isLocked
-                                ? "bg-gray-200" // Changed from "bg-muted-foreground/20"
+                                ? "bg-gray-200"
                                 : "bg-yellow-200"
                             }`}
                           >

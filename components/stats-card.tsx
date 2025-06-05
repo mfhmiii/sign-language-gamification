@@ -12,9 +12,13 @@ const StatItem = ({ icon, label, value }: StatItemProps) => {
     <div className="flex flex-col items-center px-2">
       <div className="flex items-center gap-2">
         <div className="w-6 h-6">{icon}</div>
-        <span className="text-gray-500">{label}</span>
+        <span className="text-black"> {/* Changed from text-gray-500 to text-black */}
+          {label}
+        </span>
       </div>
-      <p className="text-xl md:text-2xl font-bold">{value}</p>
+      <p className="text-xl md:text-2xl font-bold text-black"> {/* Added text-black */}
+        {value}
+      </p>
     </div>
   );
 };

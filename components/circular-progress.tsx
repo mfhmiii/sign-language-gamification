@@ -31,8 +31,7 @@ export function CircularProgress({
           cy="50%"
           r={radius}
           strokeWidth={strokeWidth}
-          stroke="currentColor"
-          className="text-muted stroke-current"
+          stroke="#E0E0E0" // Light gray background
           fill="transparent"
         />
         {/* Progress circle */}
@@ -41,8 +40,7 @@ export function CircularProgress({
           cy="50%"
           r={radius}
           strokeWidth={strokeWidth}
-          stroke="currentColor"
-          className="text-primary stroke-current"
+          stroke="#000000" // Black progress bar
           fill="transparent"
           strokeLinecap="round"
           style={{
@@ -53,10 +51,12 @@ export function CircularProgress({
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center text-center">
-        <span className="text-base sm:text-xl font-semibold">
+        <span className="text-base sm:text-xl font-semibold text-black"> {/* Added text-black */}
           {percentage}%
         </span>
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-xs text-black"> {/* Changed from text-muted-foreground to text-black */}
+          {label}
+        </span>
       </div>
     </div>
   );
