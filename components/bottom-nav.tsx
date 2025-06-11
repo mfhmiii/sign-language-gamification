@@ -9,10 +9,10 @@ export function BottomNav() {
 
   const navItems = [
     { name: "Beranda", href: "/home", icon: Home },
-    { name: "Misi", href: "/mission", icon: Target },
+    { name: "Misi", href: "/misi", icon: Target },
     // Special middle button
-    { name: "Kamus", href: "/dictionary", icon: BookOpen, special: true },
-    { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
+    { name: "Kamus", href: "/kamus", icon: BookOpen, special: true },
+    { name: "Leaderboard", href: "/papan-peringkat", icon: Trophy },
     { name: "Profil", href: "/profile/get", icon: User },
   ];
 

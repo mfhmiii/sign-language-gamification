@@ -12,7 +12,7 @@ import Image from "next/image";
 import {
   updateLevelUpMission,
   updateSignMasterMission,
-} from "@/app/(features)/mission/actions";
+} from "@/app/(features)/misi/actions";
 
 interface Level {
   id: string;

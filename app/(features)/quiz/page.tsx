@@ -7,7 +7,7 @@ import { Lock, CheckCircle } from "lucide-react";
 import { getUserProfile } from "@/utils/supabase/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserRank, getBadgeInfo } from "@/utils/ranking";
-import { updateWordWarriorMission } from "@/app/(features)/mission/actions";
+import { updateWordWarriorMission } from "@/app/(features)/misi/actions";
 
 interface QuizProgress {
   is_completed: boolean;
@@ -30,7 +30,7 @@ export default async function QuizPage() {
     if (!user) {
       return redirect("/sign-in");
     }
-    
+
     // Update Word Warrior mission progress
     await updateWordWarriorMission(user.id, true); // Pass true to skip revalidation during rendering
 

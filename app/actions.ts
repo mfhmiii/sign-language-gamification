@@ -455,7 +455,7 @@ export async function updateUserLevel(userId: string): Promise<boolean> {
       // Import and call updateLevelUpMission after successful level update
       try {
         const { updateLevelUpMission } = await import(
-          "@/app/(features)/mission/actions"
+          "@/app/(features)/misi/actions"
         );
         const missionUpdated = await updateLevelUpMission(userId, true); // Pass true to skip revalidation during rendering
 

@@ -28,7 +28,7 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
       <div className="bg-white p-6 rounded-lg max-w-sm w-full">
         <h2 className="text-xl font-bold mb-4">{item.name}</h2>
         <div className="text-center mb-4">
-          <p className="mb-2">Alhamdulillah kamu mendapatkan</p>
+          <p className="mb-2">Selamat kamu mendapatkan</p>
           <div className="flex justify-center gap-4">
             <p>+{scaledPoints || item.points_reward} 🪙</p>
             <p>EXP +{scaledXP || item.xp_reward}</p>

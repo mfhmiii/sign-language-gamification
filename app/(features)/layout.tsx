@@ -28,7 +28,7 @@ export default function FeatureLayout({
       <body>
           <TopBar/>
           <div className="bg-green-400 min-h-screen">{children}</div>
-          {!isQuizPage && <BottomNav />}
+          {!isQuizPage && <BottomNav/>}
       </body>
     </html>
   );

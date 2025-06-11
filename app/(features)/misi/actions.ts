@@ -88,19 +88,19 @@ export async function updateLoginStreakMission(
         }
       }
     } else {
-      // Update existing progress by incrementing progress_point
-      const { error: updateError } = await supabase
-        .from("user_daily_mission_progress")
-        .update({
-          progressPoint: (progressData.progressPoint || 0) + 1, // Increment by 1
-          updatedAt: now.toISOString(),
-        })
-        .eq("id", progressData.id);
+      // Update existing progress by incrementing progress_point 
+      const { error: updateError } = await supabase 
+        .from("user_daily_mission_progress") 
+        .update({ 
+          progress_point: (progressData.progress_point || 0) + 1, // Increment by 1 
+          updated_at: now.toISOString(), 
+        }) 
+        .eq("id", progressData.id); 
 
-      if (updateError) {
-        console.error("Error updating daily mission progress:", updateError);
-        return false;
-      }
+      if (updateError) { 
+        console.error("Error updating daily mission progress:", updateError); 
+        return false; 
+      } 
     }
 
     // Check if mission is completed based on progress
@@ -136,7 +136,7 @@ export async function updateLoginStreakMission(
       }
     }
 
-    revalidatePath("/mission");
+    revalidatePath("/misi");
     return true;
   } catch (error) {
     console.error("Error in updateLoginStreakMission:", error);
@@ -215,7 +215,7 @@ export async function claimDailyMissionReward(
       return { success: false };
     }
 
-    revalidatePath("/mission");
+    revalidatePath("/misi");
     return {
       success: true,
       scaledPoints: dailyMissionData.pointsReward,
@@ -272,7 +272,7 @@ export async function resetDailyMissionProgress(): Promise<boolean> {
     }
 
     console.log("Successfully reset all daily mission progress");
-    revalidatePath("/mission");
+    revalidatePath("/misi");
     return true;
   } catch (error) {
     console.error("Error in resetDailyMissionProgress:", error);
@@ -408,7 +408,7 @@ export async function updateDictionaryDiverMission(
       // The claimDailyMissionReward function will handle setting completed_at
     }
 
-    revalidatePath("/mission");
+    revalidatePath("/misi");
     return true;
   } catch (error) {
     console.error("Error in updateDictionaryDiverMission:", error);
@@ -576,7 +576,7 @@ export async function updateLevelUpMission(
 
     // Only call revalidatePath if skipRevalidation is false
     if (!skipRevalidation) {
-      revalidatePath("/mission");
+      revalidatePath("/misi");
     }
     return true;
   } catch (error) {
@@ -762,7 +762,7 @@ export async function updateSignMasterMission(
       }
     }
 
-    revalidatePath("/mission");
+    revalidatePath("/misi");
     return true;
   } catch (error) {
     console.error("Error in updateSignMasterMission:", error);
@@ -931,7 +931,7 @@ export async function updateWordWarriorMission(
 
     // Only call revalidatePath if skipRevalidation is false
     if (!skipRevalidation) {
-      revalidatePath("/mission");
+      revalidatePath("/misi");
     }
 
     return true;

@@ -21,14 +21,20 @@ export function CircularProgress({
 
   return (
     <div
-      className="relative inline-flex items-center justify-center"
+      className="relative inline-flex items-center justify-center overflow-visible"
       style={{ width: size, height: size }}
     >
-      <svg width="100%" height="100%" className="transform -rotate-90">
+      <svg 
+        width="100%" 
+        height="100%" 
+        viewBox={`0 0 ${sizeNum} ${sizeNum}`} 
+        preserveAspectRatio="xMidYMid meet"
+        className="transform -rotate-90"
+      >
         {/* Background circle */}
         <circle
-          cx="50%"
-          cy="50%"
+          cx={sizeNum / 2}
+          cy={sizeNum / 2}
           r={radius}
           strokeWidth={strokeWidth}
           stroke="#E0E0E0" // Light gray background
@@ -36,8 +42,8 @@ export function CircularProgress({
         />
         {/* Progress circle */}
         <circle
-          cx="50%"
-          cy="50%"
+          cx={sizeNum / 2}
+          cy={sizeNum / 2}
           r={radius}
           strokeWidth={strokeWidth}
           stroke="#000000" // Black progress bar
@@ -51,10 +57,10 @@ export function CircularProgress({
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center text-center">
-        <span className="text-base sm:text-xl font-semibold text-black"> {/* Added text-black */}
+        <span className="text-base sm:text-xl font-semibold text-black">
           {percentage}%
         </span>
-        <span className="text-xs text-black"> {/* Changed from text-muted-foreground to text-black */}
+        <span className="text-xs text-black">
           {label}
         </span>
       </div>

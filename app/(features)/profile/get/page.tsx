@@ -19,6 +19,7 @@ interface UserData {
   badges1: boolean;
   badges2: boolean;
   badges3: boolean;
+  badges4: boolean; // Added fourth badge
   current_streak?: number;
 }
 
@@ -59,7 +60,7 @@ export default function UserProfile() {
         const { data: userData, error } = await supabase
           .from("users")
           .select(
-            "email, username, profile_photo, points, xp, badges1, badges2, badges3"
+            "email, username, profile_photo, points, xp, badges1, badges2, badges3, badges4"
           )
           .eq("id", user.id)
           .single();
@@ -145,9 +146,7 @@ export default function UserProfile() {
         <div className="flex flex-row items-center text-left">
           <div className="relative w-16 h-16 rounded-full overflow-hidden bg-red-400">
             <Image
-              src={
-                userData.profile_photo || "/images/default-avatar.svg"
-              }
+              src={userData.profile_photo || "/images/default-avatar.svg"}
               alt="User avatar"
               width={64}
               height={64}
@@ -218,11 +217,11 @@ export default function UserProfile() {
         <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">
           Level Materi
         </h4>
-        <div className="flex sm:gap-8 justify-around">
+        <div className="flex overflow-x-auto pb-4 space-x-16 md:justify-around lg:justify-around xl:justify-around scrollbar-hide">
           {/* Beginner Badge */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+            <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
               {userData.badges1 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
@@ -239,14 +238,14 @@ export default function UserProfile() {
             </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
-              Beginner
+              Kata Dasar
             </span>
           </div>
 
           {/* Intermediate Badge */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+            <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
               {userData.badges2 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
@@ -263,14 +262,14 @@ export default function UserProfile() {
             </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
-              Intermediet
+              Aktivitas
             </span>
           </div>
 
           {/* Expert Badge */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
-            <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+            <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
               {userData.badges3 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
@@ -287,7 +286,26 @@ export default function UserProfile() {
             </div>
             {/* </div> */}
             <span className="mt-3 text-sm font-medium text-gray-600">
-              Expert
+              Keluarga
+            </span>
+          </div>
+          
+          {/* Master Badge (New) */}
+          <div className="flex flex-col items-center flex-shrink-0">
+            <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+              {userData.badges4 ? (
+                <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
+                  <Trophy 
+                    className="text-red-500" 
+                    size={40} 
+                  />
+                </div>
+              ) : (
+                <Lock className="text-gray-400 items-center" size={40} />
+              )}
+            </div>
+            <span className="mt-3 text-sm font-medium text-gray-600">
+              Buah dan Sayur
             </span>
           </div>
         </div>
@@ -306,7 +324,7 @@ export default function UserProfile() {
             const currentLevel = progress?.current_level || 1;
             return (
               <div key={mission.id} className="flex flex-col items-center">
-                <div className="lg:size-40 md:size-28 sm:size-24 size-20 relative clip-hexagon bg-slate-200">
+                <div className="lg:size-40 md:size-28 sm:size-24 size-28 relative clip-hexagon bg-slate-200">
                   {progress ? (
                     <div className="bg-yellow-300 m-1 items-center flex justify-center absolute inset-0 clip-hexagon">
                       {mission.badge_reward ? (

@@ -4,7 +4,7 @@ import { QuizType } from "@/utils/supabase/schema";
 import {
   updateLoginStreakMission,
   updateSignMasterMission,
-} from "@/app/(features)/mission/actions";
+} from "@/app/(features)/misi/actions";
 
 export interface QuizQuestion {
   id: string;

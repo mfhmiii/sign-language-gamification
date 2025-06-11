@@ -3,7 +3,10 @@
 import { useState, useRef } from "react";
 import { Camera, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-import { updateDictionaryDiverMission, updateWordWarriorMission } from "@/app/(features)/mission/actions";
+import {
+  updateDictionaryDiverMission,
+  updateWordWarriorMission,
+} from "@/app/(features)/misi/actions";
 import { useGestureSocket } from "@/hooks/useGestureSocket";
 
 type DictionaryModalProps = {
