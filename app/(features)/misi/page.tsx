@@ -77,7 +77,7 @@ export default function MissionPage() {
           />
         </div>
 
-        <div className="bg-white rounded-t-2xl mx-0 pb-10">
+        <div className="bg-white rounded-t-2xl mx-2 md:mx-10 lg:mx-14 xl:mx-20 pb-10">
           <Tabs defaultValue="misi" className="w-full py-3">
             <TabsList className="w-full">
               <TabsTrigger value="daily" className="w-full">

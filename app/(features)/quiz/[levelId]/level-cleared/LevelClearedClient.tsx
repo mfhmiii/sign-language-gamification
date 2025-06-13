@@ -100,13 +100,13 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
 
         // Determine badge image based on user's badge status
         if (currentStats?.badges1) {
-          setBadgeImage("/images/badges1.svg");
+          setBadgeImage("/images/Kata Dasar.png");
         } else if (currentStats?.badges2) {
-          setBadgeImage("/images/badges2.svg");
+          setBadgeImage("/images/Aktivitas.png");
         } else if (currentStats?.badges3) {
-          setBadgeImage("/images/badges3.svg");
+          setBadgeImage("/images/Keluarga.png");
         } else if (currentStats?.badges4) {
-          setBadgeImage("/images/badges4.svg");
+          setBadgeImage("/images/Sayur dan Buah.png");
         }
       } catch (error) {
         console.error("Error updating user stats:", error);

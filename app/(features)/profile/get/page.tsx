@@ -217,7 +217,7 @@ export default function UserProfile() {
         <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">
           Level Materi
         </h4>
-        <div className="flex overflow-x-auto pb-4 space-x-16 md:justify-around lg:justify-around xl:justify-around scrollbar-hide">
+        <div className="flex overflow-x-auto pb-4 space-x-2 md:justify-around lg:justify-around xl:justify-around scrollbar-hide">
           {/* Beginner Badge */}
           <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
@@ -225,7 +225,7 @@ export default function UserProfile() {
               {userData.badges1 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
-                    src="/images/beginner.svg"
+                    src="/images/Kata Dasar.png"
                     alt="Beginner Badge"
                     width={60}
                     height={60}
@@ -249,7 +249,7 @@ export default function UserProfile() {
               {userData.badges2 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
-                    src="/images/intermediate.svg"
+                    src="/images/Aktivitas.png"
                     alt="Intermediate Badge"
                     width={50}
                     height={50}
@@ -273,7 +273,7 @@ export default function UserProfile() {
               {userData.badges3 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
                   <Image
-                    src="/images/expert.svg"
+                    src="/images/Keluarga.png"
                     alt="Expert Badge"
                     width={50}
                     height={50}
@@ -295,9 +295,12 @@ export default function UserProfile() {
             <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
               {userData.badges4 ? (
                 <div className="bg-yellow-300 m-1 flex justify-center items-center absolute inset-0 clip-hexagon">
-                  <Trophy 
-                    className="text-red-500" 
-                    size={40} 
+                  <Image
+                    src="/images/Sayur dan Buah.png"
+                    alt="Master Badge"
+                    width={40}
+                    height={40}
+                    className="text-red-500 md:w-20"
                   />
                 </div>
               ) : (

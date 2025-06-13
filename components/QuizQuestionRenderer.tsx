@@ -265,7 +265,7 @@ export default function QuizQuestionRenderer({
                     autoPlay
                     loop
                     muted
-                    className="w-full h-full object-contain opacity-70"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 type Mission = {
+  badge_reward: string | null;
   id: string;
   name: string;
   description: string | null;
@@ -10,6 +11,7 @@ type Mission = {
   level_requirement: number;
   xp_reward: number;
   points_reward: number;
+  badge?: string; // Menambahkan properti badge
 };
 
 type MissionProgress = {
@@ -32,14 +34,30 @@ export function MissionCard({ mission, progress, onClaim }: MissionCardProps) {
   const progressPoint = progress?.progress_point || 0;
   const progressLevel = progress?.current_level || 0;
   const progressLimit = progress?.current_level_requirement || 0;
-  // const canClaim = progressPoint >= mission.level_requirement;
   const canClaim = progressPoint >= progressLimit;
-
+  
+  // Determine badge image based on mission name
+  let badgeImage = "/images/mission.svg"; // Default image
+  
+  if (mission.name === "Sign Master") {
+    badgeImage = "/images/Sign Master.png";
+  } else if (mission.name === "Level Up!") {
+    badgeImage = "/images/Level Up.png";
+  } else if (mission.name === "Word Warrior") {
+    badgeImage = "/images/Word Warrior.png";
+  }
+  
   return (
     <Card className="p-4">
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center bg-green-100 rounded-lg">
-          <div className="text-2xl md:text-4xl">🎯</div>
+        <div className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 flex items-center justify-center bg-green-100 rounded-lg overflow-hidden">
+          <Image 
+            src={badgeImage} 
+            alt={mission.name} 
+            width={80} 
+            height={80}
+            className="object-contain w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32"
+          />
         </div>
         <div className="flex-1">
           <h3 className="text-base font-medium">{mission.name}</h3>

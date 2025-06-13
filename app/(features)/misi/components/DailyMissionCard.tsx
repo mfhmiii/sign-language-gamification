@@ -1,7 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 type DailyMission = {
+  badge_reward?: string;
   id: string;
   name: string;
   description: string | null;
@@ -12,6 +14,7 @@ type DailyMission = {
   reset_time?: string;
   created_at?: string;
   updated_at?: string;
+  badge?: string; // Menambahkan properti badge
 };
 
 type DailyMissionProgress = {
@@ -42,17 +45,28 @@ export function DailyMissionCard({
   const isCompleted = progress?.completed_at !== null;
   const canClaim = progressPoint >= progressLimit && !isCompleted;
 
-  // Special icon for login streak mission
-  const isLoginStreakMission = mission.name === "Login Streak!";
-  const missionIcon = isLoginStreakMission ? "🔥" : "📅";
-
+  // Determine badge image based on exact mission name
+  let badgeImage = "/images/mission.svg";
+  
+  if (mission.name === "Login Streak!") {
+    badgeImage = "/images/Login Streak.png";
+  } else if (mission.name === "Dictionary Diver!") {
+    badgeImage = "/images/Dictionary Diver.png";
+  }
+  
   return (
     <Card className="p-4">
       <div className="flex items-center gap-4">
         <div
-          className={`w-16 h-16 md:w-32 md:h-32 flex items-center justify-center ${isLoginStreakMission ? "bg-orange-100" : "bg-green-100"} rounded-lg`}
+          className={`w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 flex items-center justify-center ${mission.name === "Login Streak!" ? "bg-orange-100" : "bg-green-100"} rounded-lg overflow-hidden`}
         >
-          <div className="text-2xl md:text-4xl">{missionIcon}</div>
+          <Image 
+            src={badgeImage} 
+            alt={mission.name} 
+            width={80} 
+            height={80}
+            className="object-contain w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20"
+          />
         </div>
         <div className="flex-1">
           <h3 className="text-base font-medium">{mission.name}</h3>
@@ -65,7 +79,7 @@ export function DailyMissionCard({
               <div className="flex items-center gap-2">
                 <div className="w-full bg-gray-200 rounded-full h-4">
                   <div
-                    className={`${isLoginStreakMission ? "bg-orange-500" : "bg-yellow-500"} h-4 rounded-full`}
+                    className={`bg-yellow-500 h-4 rounded-full`}
                     style={{
                       width: `${Math.min((progressPoint / progressLimit) * 100, 100)}%`,
                     }}
@@ -79,7 +93,7 @@ export function DailyMissionCard({
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => onClaim(mission)}
-                  className={`${isLoginStreakMission ? "bg-orange-500 hover:bg-orange-600" : "bg-yellow-500 hover:bg-yellow-600"} flex-1`}
+                  className={`bg-yellow-500 hover:bg-yellow-600 flex-1`}
                 >
                   Klaim Hadiah
                 </Button>

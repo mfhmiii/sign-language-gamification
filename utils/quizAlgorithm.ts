@@ -479,7 +479,7 @@ export async function updateBadgesOnLevelCompletion(
         case "Kata Dasar":
           badgeField = "badges1";
           break;
-        case "Activity":
+        case "Aktivitas":  // Changed from "Activity" to match your image name
           badgeField = "badges2";
           break;
         case "Keluarga":
