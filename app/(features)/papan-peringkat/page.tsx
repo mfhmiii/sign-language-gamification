@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Crown, Coins } from "lucide-react";
+import { Crown, Coins, User } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ export default function LeaderboardPage() {
   const [currentUser, setCurrentUser] = useState<RankedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<RankedUser | null>(null);
   const currentUserRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -78,6 +79,23 @@ export default function LeaderboardPage() {
     return currentUser?.id === playerId;
   };
 
+  const handlePlayerClick = (player: RankedUser) => {
+    if (selectedPlayer?.id === player.id) {
+      setSelectedPlayer(null);
+    } else {
+      setSelectedPlayer(player);
+      // Otomatis sembunyikan tombol setelah 3 detik
+      setTimeout(() => {
+        setSelectedPlayer(null);
+      }, 3000);
+    }
+  };
+
+  const viewProfile = (username: string) => {
+    router.push(`/profile/view/${username}`);
+    setSelectedPlayer(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -106,6 +124,7 @@ export default function LeaderboardPage() {
                     ? "order-1 -mr-2"
                     : "order-3 -ml-2"
               } ${marginTop}`}
+              onClick={() => handlePlayerClick(player)}
             >
               <div
                 className={`relative ${player.rank === 1 ? "mb-2" : "mb-0"}`}
@@ -159,6 +178,23 @@ export default function LeaderboardPage() {
                   Level {Math.floor(player.xp / 1000)}
                 </p>
               </div>
+              
+              {/* Tombol Lihat Profil untuk Top 3 Players - Menunjuk ke atas */}
+              {selectedPlayer?.id === player.id && (
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-24">
+                  <div className="absolute left-1/2 -top-2 transform -translate-x-1/2 w-0 h-0 border-l-6 border-l-transparent border-r-6 border-r-transparent border-b-6 border-b-gray-600"></div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      viewProfile(player.username);
+                    }}
+                    className="w-full flex items-center justify-center gap-1 bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 transition-colors"
+                  >
+                    <User size={12} />
+                    <span>Lihat Profil</span>
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -183,13 +219,13 @@ export default function LeaderboardPage() {
               className={`flex justify-between items-center rounded-lg p-4 ${
                 isCurrentUser(player.id) ? "bg-blue-100" : "bg-green-200"
               }`}
+              onClick={() => handlePlayerClick(player)}
             >
               <div className="w-16 font-medium flex items-center gap-2">
                 {player.rank}
               </div>
               <div
-                className="flex-1 font-medium flex items-center gap-2 cursor-pointer"
-                onClick={() => router.push(`/profile/view/${player.username}`)}
+                className="flex-1 font-medium flex items-center gap-2 cursor-pointer relative"
               >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200">
                   <Image
@@ -202,9 +238,26 @@ export default function LeaderboardPage() {
                     className="object-cover"
                   />
                 </div>
-                {player.username}
+                <span>{player.username}</span>
                 {isCurrentUser(player.id) && (
                   <span className="text-blue-500 text-sm">(You)</span>
+                )}
+                
+                {/* Tombol Lihat Profil untuk Other Players - Menunjuk ke kiri */}
+                {selectedPlayer?.id === player.id && (
+                  <div className="relative ml-2">
+                    <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-6 border-t-transparent border-r-6 border-r-gray-600 border-b-6 border-b-transparent"></div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        viewProfile(player.username);
+                      }}
+                      className="flex items-center gap-1 bg-gray-600 text-white px-2 py-1 rounded-md text-xs hover:bg-gray-700 transition-colors"
+                    >
+                      <User size={12} />
+                      <span>Lihat Profil</span>
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="w-24 text-right font-medium flex items-center justify-end gap-1">

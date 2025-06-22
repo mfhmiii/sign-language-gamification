@@ -47,25 +47,27 @@ export function DailyMissionCard({
 
   // Determine badge image based on exact mission name
   let badgeImage = "/images/mission.svg";
-  
+
   if (mission.name === "Login Streak!") {
     badgeImage = "/images/Login Streak.png";
   } else if (mission.name === "Dictionary Diver!") {
     badgeImage = "/images/Dictionary Diver.png";
+  } else if (mission.name === "Lucky draw") {
+    badgeImage = "/images/Lucky Spin.png";
   }
-  
+
   return (
     <Card className="p-4">
       <div className="flex items-center gap-4">
         <div
           className={`w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 flex items-center justify-center ${mission.name === "Login Streak!" ? "bg-orange-100" : "bg-green-100"} rounded-lg overflow-hidden`}
         >
-          <Image 
-            src={badgeImage} 
-            alt={mission.name} 
-            width={80} 
+          <Image
+            src={badgeImage}
+            alt={mission.name}
+            width={80}
             height={80}
-            className="object-contain w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20"
+            className="object-contain w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32"
           />
         </div>
         <div className="flex-1">

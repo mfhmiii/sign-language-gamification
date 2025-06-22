@@ -208,7 +208,7 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
                 alt="Badge Image"
                 width={48}
                 height={48}
-                className="mx-auto mb-4 w-40 h-40"
+                className="mx-auto mb-4 w-40 h-56"
               />
             ) : (
               <p>No badge earned yet.</p>

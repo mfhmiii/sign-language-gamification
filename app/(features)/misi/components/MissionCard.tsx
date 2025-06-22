@@ -35,10 +35,10 @@ export function MissionCard({ mission, progress, onClaim }: MissionCardProps) {
   const progressLevel = progress?.current_level || 0;
   const progressLimit = progress?.current_level_requirement || 0;
   const canClaim = progressPoint >= progressLimit;
-  
+
   // Determine badge image based on mission name
   let badgeImage = "/images/mission.svg"; // Default image
-  
+
   if (mission.name === "Sign Master") {
     badgeImage = "/images/Sign Master.png";
   } else if (mission.name === "Level Up!") {
@@ -46,17 +46,17 @@ export function MissionCard({ mission, progress, onClaim }: MissionCardProps) {
   } else if (mission.name === "Word Warrior") {
     badgeImage = "/images/Word Warrior.png";
   }
-  
+
   return (
     <Card className="p-4">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 flex items-center justify-center bg-green-100 rounded-lg overflow-hidden">
-          <Image 
-            src={badgeImage} 
-            alt={mission.name} 
-            width={80} 
+          <Image
+            src={badgeImage}
+            alt={mission.name}
+            width={80}
             height={80}
-            className="object-contain w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32"
+            className="object-contain w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32"
           />
         </div>
         <div className="flex-1">
@@ -64,7 +64,7 @@ export function MissionCard({ mission, progress, onClaim }: MissionCardProps) {
           <p className="text-sm text-gray-500">{mission.description}</p>
           <div className="mt-2">
             <div className="text-sm text-gray-600 pb-2">
-              Level {progressLevel || 1}
+              Level {progressLevel || 0}
             </div>
             {!canClaim ? (
               <div className="flex items-center gap-2">

@@ -13,7 +13,10 @@ export const useGestureSocket = (
 
   useEffect(() => {
     const connect = async () => {
-      socketRef.current = io("https://our-silences.online", {
+      socketRef.current = io(
+        // "https://our-silences.online"
+        "wss://our-silences.online"
+        , {
         transports: ["polling"],
       });
 

@@ -121,7 +121,7 @@ export const signUpAction = async (formData: FormData) => {
       user_id: userId,
       mission_id: mission.id,
       progress_point: 0,
-      current_level: 1,
+      current_level: 0,
       current_level_requirement: mission.level_requirement,
       current_xp_reward: mission.xp_reward,
       current_points_reward: mission.points_reward,

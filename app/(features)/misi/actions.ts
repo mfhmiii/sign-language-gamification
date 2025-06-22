@@ -51,13 +51,13 @@ export async function updateLoginStreakMission(
     if (!progressData || needsReset) {
       // Create or reset the progress record
       const newProgressData = {
-        user_id: userId,                     // Changed from userId
-        daily_mission_id: dailyMissionData.id,  // Changed from dailyMissionId
-        progress_point: 1,                  // Changed from progressPoint
+        user_id: userId, // Changed from userId
+        daily_mission_id: dailyMissionData.id, // Changed from dailyMissionId
+        progress_point: 1, // Changed from progressPoint
         // Removed currentLevelRequirement field
-        completed_at: null,                 // Changed from completedAt
-        created_at: now.toISOString(),      // Changed from createdAt
-        updated_at: now.toISOString(),      // Changed from updatedAt
+        completed_at: null, // Changed from completedAt
+        created_at: now.toISOString(), // Changed from createdAt
+        updated_at: now.toISOString(), // Changed from updatedAt
       };
 
       if (!progressData) {
@@ -68,7 +68,11 @@ export async function updateLoginStreakMission(
 
         // Inside updateLoginStreakMission function
         if (insertError) {
-          console.error("Error creating daily mission progress:", insertError, JSON.stringify(newProgressData));
+          console.error(
+            "Error creating daily mission progress:",
+            insertError,
+            JSON.stringify(newProgressData)
+          );
           return false;
         }
       } else {
@@ -88,19 +92,23 @@ export async function updateLoginStreakMission(
         }
       }
     } else {
-      // Update existing progress by incrementing progress_point 
-      const { error: updateError } = await supabase 
-        .from("user_daily_mission_progress") 
-        .update({ 
-          progress_point: (progressData.progress_point || 0) + 1, // Increment by 1 
-          updated_at: now.toISOString(), 
-        }) 
-        .eq("id", progressData.id); 
+      // Check if progress has already reached the requirement before updating
+      if (progressData.progress_point < dailyMissionData.level_requirement) {
+        // Update existing progress by incrementing progress_point
+        const { error: updateError } = await supabase
+          .from("user_daily_mission_progress")
+          .update({
+            progress_point: (progressData.progress_point || 0) + 1, // Increment by 1
+            updated_at: now.toISOString(),
+          })
+          .eq("id", progressData.id);
 
-      if (updateError) { 
-        console.error("Error updating daily mission progress:", updateError); 
-        return false; 
-      } 
+        if (updateError) {
+          console.error("Error updating daily mission progress:", updateError);
+          return false;
+        }
+      }
+      // If progress already meets requirement, don't update it
     }
 
     // Check if mission is completed based on progress

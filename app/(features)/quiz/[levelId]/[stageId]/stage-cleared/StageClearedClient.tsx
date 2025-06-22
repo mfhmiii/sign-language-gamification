@@ -148,9 +148,6 @@ export default function StageClearedClient({
     if (allStagesCompleted) {
       // If all stages are completed, go to level-cleared
       router.push(`/quiz/${levelId}/level-cleared`);
-    } else if (nextStage !== null) {
-      // Go to the next stage
-      router.push(`/quiz/${levelId}/${nextStage}`);
     } else {
       // Fallback to quiz level page
       router.push(`/quiz/${levelId}`);
@@ -167,7 +164,7 @@ export default function StageClearedClient({
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
             <h2 className="text-xl font-semibold mb-2 text-center">
-              Tahap Selesai!
+              Stage Selesai!
             </h2>
             <p className="text-center text-gray-600">
               Kamu telah menyelesaikan semua soal pada tahap ini.

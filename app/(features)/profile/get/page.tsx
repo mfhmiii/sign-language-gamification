@@ -217,8 +217,7 @@ export default function UserProfile() {
         <h4 className="text-center text-gray-700 text-lg mb-4 font-bold">
           Level Materi
         </h4>
-        <div className="flex overflow-x-auto pb-4 space-x-2 md:justify-around lg:justify-around xl:justify-around scrollbar-hide">
-          {/* Beginner Badge */}
+        <div className="flex overflow-x-auto pb-4 space-x-2 sm:justify-around md:justify-around lg:justify-around xl:justify-around scrollbar-hide">
           <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
             <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
@@ -227,13 +226,16 @@ export default function UserProfile() {
                   <Image
                     src="/images/Kata Dasar.png"
                     alt="Beginner Badge"
-                    width={60}
-                    height={60}
-                    className="text-red-500 md:w-20"
+                    width={50}
+                    height={50}
+                    className="text-red-500 md:w-16 lg:w-20"
                   />
                 </div>
               ) : (
-                <Lock className="text-gray-400 items-center" size={40} />
+                <Lock
+                  className="text-gray-400 items-center md:w-20"
+                  size={40}
+                />
               )}
             </div>
             {/* </div> */}
@@ -242,7 +244,6 @@ export default function UserProfile() {
             </span>
           </div>
 
-          {/* Intermediate Badge */}
           <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
             <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
@@ -253,11 +254,11 @@ export default function UserProfile() {
                     alt="Intermediate Badge"
                     width={50}
                     height={50}
-                    className="text-red-500 md:w-20"
+                    className="text-red-500 md:w-16 lg:w-20"
                   />
                 </div>
               ) : (
-                <Lock className="text-gray-400 items-center" size={40} />
+                <Lock className="text-gray-400 items-center" size={50} />
               )}
             </div>
             {/* </div> */}
@@ -266,7 +267,6 @@ export default function UserProfile() {
             </span>
           </div>
 
-          {/* Expert Badge */}
           <div className="flex flex-col items-center flex-shrink-0">
             {/* <div className="lg:w-32 lg:h-32 md:w-24 md:h-24 sm:w-20 sm:h-20 w-16 h-16 relative"> */}
             <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
@@ -277,11 +277,11 @@ export default function UserProfile() {
                     alt="Expert Badge"
                     width={50}
                     height={50}
-                    className="text-red-500 md:w-20"
+                    className="text-red-500 md:w-16 lg:w-20"
                   />
                 </div>
               ) : (
-                <Lock className="text-gray-400 items-center" size={40} />
+                <Lock className="text-gray-400 items-center" size={50} />
               )}
             </div>
             {/* </div> */}
@@ -289,8 +289,7 @@ export default function UserProfile() {
               Keluarga
             </span>
           </div>
-          
-          {/* Master Badge (New) */}
+
           <div className="flex flex-col items-center flex-shrink-0">
             <div className="lg:size-40 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
               {userData.badges4 ? (
@@ -300,11 +299,11 @@ export default function UserProfile() {
                     alt="Master Badge"
                     width={40}
                     height={40}
-                    className="text-red-500 md:w-20"
+                    className="text-red-500 md:w-16 lg:w-20"
                   />
                 </div>
               ) : (
-                <Lock className="text-gray-400 items-center" size={40} />
+                <Lock className="text-gray-400 items-center" size={50} />
               )}
             </div>
             <span className="mt-3 text-sm font-medium text-gray-600">
@@ -324,33 +323,32 @@ export default function UserProfile() {
             const progress = missionProgress.find(
               (p) => p.mission_id === mission.id
             );
-            const currentLevel = progress?.current_level || 1;
+            const currentLevel = progress?.current_level || 0;
             return (
               <div key={mission.id} className="flex flex-col items-center">
-                <div className="lg:size-40 md:size-28 sm:size-24 size-28 relative clip-hexagon bg-slate-200">
-                  {progress ? (
+                <div className="lg:size-40 md:size-28 sm:size-24 size-28 relative clip-hexagon bg-slate-200 flex justify-center items-center">
+                  {progress && currentLevel > 0 ? (
                     <div className="bg-yellow-300 m-1 items-center flex justify-center absolute inset-0 clip-hexagon">
                       {mission.badge_reward ? (
                         <Image
                           src={mission.badge_reward}
                           alt={mission.name}
-                          width={40}
-                          height={40}
-                          className="text-red-500 md:w-20"
+                          width={50}
+                          height={50}
+                          className="text-red-500 md:w-16 lg:w-20"
                         />
                       ) : (
                         <BookOpen className="text-red-500" size={24} />
                       )}
                     </div>
                   ) : (
-                    <Lock className="text-gray-400" size={24} />
+                    <Lock className="text-gray-400" size={40} />
                   )}
-                  {/* </div> */}
                 </div>
                 <div className="mt-2 text-center max-w-[80px] md:max-w-max mx-auto">
                   <span className="text-sm text-gray-600">{mission.name}</span>
                   <span className="block text-xs text-gray-500">
-                    Level {currentLevel}
+                    Level {currentLevel > 0 ? currentLevel : "Locked"}
                   </span>
                 </div>
               </div>

@@ -24,12 +24,27 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
 
   const { item, scaledPoints, scaledXP } = reward;
   
-  // Menentukan badge berdasarkan nama misi atau menggunakan default
-  const badgeImage = item.badge || 
-    (item.name.toLowerCase().includes("beginner") ? "beginner.svg" :
-     item.name.toLowerCase().includes("intermediate") ? "intermediate.svg" :
-     item.name.toLowerCase().includes("expert") ? "expert.svg" :
-     "mission.svg");
+  // Determine badge image based on exact mission name
+  let badgeImage = "/images/mission.svg"; // Default image
+
+  if (item.name === "Login Streak!") {
+    badgeImage = "/images/Login Streak.png";
+  } else if (item.name === "Dictionary Diver!") {
+    badgeImage = "/images/Dictionary Diver.png";
+  } else if (item.name === "Lucky draw") {
+    badgeImage = "/images/Lucky Spin.png";
+  } else if (item.name === "Sign Master") {
+    badgeImage = "/images/Sign Master.png";
+  } else if (item.name === "Level Up!") {
+    badgeImage = "/images/Level Up.png";
+  } else if (item.name === "Word Warrior") {
+    badgeImage = "/images/Word Warrior.png";
+  }
+
+  // Use custom badge if provided
+  if (item.badge) {
+    badgeImage = `/images/${item.badge}`;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -38,7 +53,7 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
         <div className="text-center mb-4">
           <div className="flex justify-center mb-4">
             <Image 
-              src={`/images/${badgeImage}`} 
+              src={badgeImage} 
               alt="Badge Reward" 
               width={100} 
               height={100} 

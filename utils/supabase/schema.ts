@@ -126,7 +126,7 @@ export const mission = pgTable("mission", {
   id: uuid("id").primaryKey().notNull(),
   name: varchar("name", { length: 500 }).notNull(),
   description: varchar("description", { length: 500 }),
-  level: integer("level").default(1),
+  level: integer("level").default(0),
   levelRequirement: integer("level_requirement").notNull(), // Number of completions needed to level up
   xpReward: integer("xp_reward").notNull(), // Base XP reward for current level
   pointsReward: integer("points_reward").notNull(), // Base points reward for current level

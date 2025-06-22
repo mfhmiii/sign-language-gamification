@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Mic, CheckCircle } from "lucide-react";
+// import { Search, Mic, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DictionaryModal from "@/components/dictionary-modal";
+// First, update the import to include stopListening
+import { useSpeechToText } from "@/hooks/useSpeechToText";
+// Add X icon import
+import { Search, Mic, CheckCircle, X } from "lucide-react";
 
 type DictionaryProgress = {
   id: string;
@@ -23,6 +27,19 @@ export default function Home() {
     null
   );
   const supabase = createClient();
+
+  // Add speech recognition hook
+  // Update this line
+  // Make sure to include stopListening in the hook destructuring
+  const { transcript, status, startListening, stopListening, isSupported } = useSpeechToText();
+
+  // Update search query when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setSearchQuery(transcript);
+      setSearchTerm(transcript.toLowerCase());
+    }
+  }, [transcript]);
 
   useEffect(() => {
     const fetchDictionaryProgress = async () => {
@@ -96,6 +113,19 @@ export default function Home() {
     setSearchTerm(searchQuery.toLowerCase());
   };
 
+  // Handle voice search
+  const handleVoiceSearch = () => {
+    if (isSupported) {
+      if (status === "listening") {
+        stopListening();
+      } else {
+        startListening();
+      }
+    } else {
+      alert("Speech recognition is not supported in your browser");
+    }
+  };
+
   return (
     <main className="py-8 md:py-10 min-h-screen flex flex-col">
       <div className="flex flex-col flex-1">
@@ -139,43 +169,70 @@ export default function Home() {
             >
               <Search size={20} className="text-gray-600" />
             </button>
-            {/* <button className="bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors">
-              <Mic size={20} className="text-gray-600" />
-            </button> */}
+            {/* // Update the voice button to show different icons based on status */}
+            <button
+              className={`bg-gray-100 rounded-full p-3 hover:bg-gray-200 transition-colors ${status === "listening" ? "bg-red-100" : ""}`}
+              onClick={handleVoiceSearch}
+            >
+              {status === "listening" ? (
+                <X
+                  size={20}
+                  className="text-red-500"
+                />
+              ) : (
+                <Mic
+                  size={20}
+                  className="text-gray-600"
+                />
+              )}
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {dictionaryItems
-                .filter((item) =>
-                    item.value.toLowerCase().includes(searchTerm)
-                )
-                .map((item) => (
-                    <div
-                        key={item.id}
-                        className="bg-amber-400 rounded-xl p-4 text-white"
-                    >
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-bold">{item.value}</span>
-                                {item.progressPoint >= 5 && (
-                                    <CheckCircle className="text-green-500 h-5 w-5" />
-                                )}
-                            </div>
-                            <button
-                                onClick={() => setSelectedWord(item)}
-                                className="bg-gray-100 text-gray-500 px-4 py-1 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
-                            >
-                                Lihat
-                            </button>
-                        </div>
-                        <div className="bg-white rounded-full h-2 overflow-hidden">
-                            <div
-                                className={`h-full transition-all duration-300 ${item.progressPoint >= 5 ? 'bg-green-500' : 'bg-amber-500'}`}
-                                style={{ width: `${Math.min((item.progressPoint / 5) * 100, 100)}%` }}
-                            />
-                        </div>
+              .filter((item) => {
+                // Split the search term into individual words
+                if (!searchTerm) return true; // Show all items if no search term
+                
+                const searchWords = searchTerm.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+                
+                // If no valid search words, show all items
+                if (searchWords.length === 0) return true;
+                
+                // Check if the item's value includes any of the search words
+                return searchWords.some(word => 
+                  item.value.toLowerCase().includes(word)
+                );
+              })
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-amber-400 rounded-xl p-4 text-white"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold">{item.value}</span>
+                      {item.progressPoint >= 5 && (
+                        <CheckCircle className="text-green-500 h-5 w-5" />
+                      )}
                     </div>
-                ))}
+                    <button
+                      onClick={() => setSelectedWord(item)}
+                      className="bg-gray-100 text-gray-500 px-4 py-1 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      Lihat
+                    </button>
+                  </div>
+                  <div className="bg-white rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${item.progressPoint >= 5 ? "bg-green-500" : "bg-amber-500"}`}
+                      style={{
+                        width: `${Math.min((item.progressPoint / 5) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       </div>
