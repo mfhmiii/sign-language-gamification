@@ -2,18 +2,22 @@
 
 import { Suspense, useEffect, useState } from "react";
 import RetryConfirmationClient from "./RetryConfirmationClient";
-// Remove the 'use' import since we won't be using it
+// We need to add the 'use' import
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 interface PageProps {
-  params: { levelId: string; stageId: string };
+  params: Promise<{ levelId: string; stageId: string }> | undefined;
 }
 
 export default function RetryConfirmationPage({ params }: PageProps) {
-  // Access params directly instead of using the 'use' hook
-  const levelId = params?.levelId || "";
-  const stageId = params?.stageId || "";
+  // Use the 'use' hook to resolve the params promise
+  const resolvedParams = use(
+    Promise.resolve(params || { levelId: "", stageId: "" })
+  );
+  const levelId = resolvedParams.levelId || "";
+  const stageId = resolvedParams.stageId || "";
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
