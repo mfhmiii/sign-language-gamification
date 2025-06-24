@@ -41,6 +41,21 @@ export default function DictionaryModal({
     canvasRef,
     (sentence) => {
       setPredictionText("📜 " + sentence);
+      
+      // Since dictionary.value is always a single word, we can check if it appears in the sentence
+      if (word && word.value) {
+        // Split the sentence into words and check if any word matches the dictionary value
+        const words = sentence.toLowerCase().split(/\s+/);
+        const dictionaryValue = word.value.toLowerCase();
+        
+        if (words.includes(dictionaryValue)) {
+          // If there's a match, automatically trigger the handleGestureSubmit function
+          // But only if we're not already loading
+          if (!isLoading) {
+            handleGestureSubmit();
+          }
+        }
+      }
     }
   );
 
