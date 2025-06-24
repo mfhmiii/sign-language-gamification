@@ -94,7 +94,6 @@ export default function QuizQuestionRenderer({
       );
       setIsCorrect(isCorrectAnswer);
       setIsSubmitted(true);
-
     } else if (question.type === "memory_match") {
       // For memory_match, mark as completed (skipped) if not already completed
       await updateQuizProgress(userId, question.id, question.level_id, false);
@@ -178,63 +177,35 @@ export default function QuizQuestionRenderer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [predictionText, setPredictionText] = useState("Menunggu prediksi...");
 
-  // useEffect(() => {
-  //   let socket: any;
-
-  //   if (isCameraOpen && videoRef.current) {
-  //     const connectAndStream = async () => {
-  //       socket = io("https://our-silences.online", {
-  //         transports: ["websocket"],
-  //         secure: true,
-  //       });
-
-  //       const mediaStream = await navigator.mediaDevices.getUserMedia({
-  //         video: true,
-  //       });
-  //       setStream(mediaStream);
-  //       videoRef.current!.srcObject = mediaStream;
-
-  //       const canvas = canvasRef.current;
-  //       const ctx = canvas?.getContext("2d");
-
-  //       const sendFrame = () => {
-  //         if (videoRef.current && canvas && ctx) {
-  //           canvas.width = videoRef.current.videoWidth;
-  //           canvas.height = videoRef.current.videoHeight;
-  //           ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-  //           const imageData = canvas.toDataURL("image/jpeg");
-  //           socket.emit("frame", { image: imageData });
-  //         }
-  //       };
-
-  //       const intervalId = setInterval(sendFrame, 100);
-
-  //       socket.on("prediction", (data: { sentence: string }) => {
-  //         setPredictionText("📜 " + data.sentence);
-  //       });
-
-  //       socket.on("disconnect", () => {
-  //         clearInterval(intervalId);
-  //       });
-  //     };
-
-  //     connectAndStream();
-  //   }
-
-  //   return () => {
-  //     socket?.disconnect();
-  //     if (stream) {
-  //       stream.getTracks().forEach((track) => track.stop());
-  //     }
-  //   };
-  // }, [isCameraOpen]);
-
   const { stopCamera } = useGestureSocket(
     isCameraOpen,
     videoRef as React.RefObject<HTMLVideoElement>,
     canvasRef as React.RefObject<HTMLCanvasElement>,
     (sentence) => {
       setPredictionText("📜 " + sentence);
+      
+      // Only proceed if this is a gesture_to_text question and we have a correct_answer
+      if (question.type === "gesture_to_text" && question.correct_answer) {
+        // Check if correct_answer is a single word (no spaces)
+        if (!question.correct_answer.includes(" ")) {
+          // Split the sentence into words and check if any word matches the correct_answer
+          const words = sentence.toLowerCase().split(/\s+/);
+          const correctAnswer = question.correct_answer.toLowerCase();
+          
+          if (words.includes(correctAnswer)) {
+            // If there's a match, set isCorrect to true
+            setIsCorrect(true);
+            // You might want to also update the progress in the database
+            updateQuizProgress(userId, question.id, question.level_id, true);
+          }
+        } else {
+          // For multi-word correct answers, check exact match
+          if (sentence.toLowerCase() === question.correct_answer.toLowerCase()) {
+            setIsCorrect(true);
+            updateQuizProgress(userId, question.id, question.level_id, true);
+          }
+        }
+      }
     }
   );
 

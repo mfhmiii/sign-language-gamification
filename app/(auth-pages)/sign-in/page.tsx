@@ -37,7 +37,7 @@ export default function Login(props: { searchParams: Promise<Message> }) {
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">
-              Nama Panggilan
+              Email
             </Label>
             <div className="relative">
               <InputFields

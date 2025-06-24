@@ -18,6 +18,8 @@ export const useGestureSocket = (
         // "wss://our-silences.online"
         , {
         transports: ["polling"],
+        secure: false,  // Add this line to bypass certificate validation
+        rejectUnauthorized: false  // Also add this for additional security bypass
       });
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });

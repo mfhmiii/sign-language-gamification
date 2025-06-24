@@ -13,6 +13,8 @@ import {
   updateLevelUpMission,
   updateSignMasterMission,
 } from "@/app/(features)/misi/actions";
+// Import confetti
+import confetti from "canvas-confetti";
 
 interface Level {
   id: string;
@@ -35,6 +37,49 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
   const [rewardsGiven, setRewardsGiven] = useState(false);
   const [rewards, setRewards] = useState({ coins: 0, xp: 0 });
   const [badgeImage, setBadgeImage] = useState<string | null>(null);
+
+  // Function to trigger confetti
+  const triggerConfetti = useCallback(() => {
+    const count = 200,
+      defaults = {
+        origin: { y: 0.7 },
+      };
+
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti(
+        Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio),
+        })
+      );
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  }, []);
 
   // Calculate rewards based on level order
   const calculateRewards = useCallback((levelOrder: number) => {
@@ -176,6 +221,8 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
             await updateUserStats(user.id, levelData.order);
             // Update badges when level is completed - use levelData.id, not levelId
             await updateBadgesOnLevelCompletion(user.id, levelData.id);
+            // Trigger confetti when rewards are given
+            triggerConfetti();
           }
         }
       } catch (error) {
@@ -186,7 +233,7 @@ export default function LevelClearedClient({ levelId }: { levelId: string }) {
     }
 
     loadData();
-  }, [levelId, supabase, router, updateUserStats, rewardsGiven]);
+  }, [levelId, supabase, router, updateUserStats, rewardsGiven, triggerConfetti]);
 
   if (loading) {
     return (

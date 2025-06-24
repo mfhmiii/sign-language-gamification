@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import Image from "next/image";
+// Import confetti
+import confetti from "canvas-confetti";
 
 interface StageClearedClientProps {
   levelId: string;
@@ -28,6 +30,49 @@ export default function StageClearedClient({
   const [allStagesCompleted, setAllStagesCompleted] = useState(false);
   const [nextStage, setNextStage] = useState<number | null>(null);
   const [rewards, setRewards] = useState({ coins: 10, xp: 20 }); // Small rewards for stage completion
+
+  // Function to trigger confetti
+  const triggerConfetti = useCallback(() => {
+    const count = 200,
+      defaults = {
+        origin: { y: 0.7 },
+      };
+
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti(
+        Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio),
+        })
+      );
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -126,6 +171,9 @@ export default function StageClearedClient({
             })
             .eq("id", user.id);
         }
+        
+        // Trigger confetti after data is loaded and stage is confirmed completed
+        triggerConfetti();
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -134,7 +182,7 @@ export default function StageClearedClient({
     }
 
     loadData();
-  }, [levelId, stageId, router, supabase, rewards.coins, rewards.xp]);
+  }, [levelId, stageId, router, supabase, rewards.coins, rewards.xp, triggerConfetti]);
 
   if (loading) {
     return (
